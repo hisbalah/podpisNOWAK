@@ -63,7 +63,7 @@
 
 <body>
 <div class="wrap">
-  <h1>Podpísanie PDF – Mobilná verzia</h1>
+ 
 
 
   <!-- PDF NAVRCHU -->
@@ -236,6 +236,13 @@ document.getElementById('btnConfirmData').onclick = (e)=>{
   if(!theForm.reportValidity()) return;
 
   const data = getFormData();
+
+  // Preformátujeme dátum YYYY-MM-DD -> DD.MM.YYYY
+  if (data.datum) {
+    const parts = data.datum.split("-");
+    data.datum = `${parts[2]}.${parts[1]}.${parts[0]}`;
+  }
+
   let rows = '';
   FORM_FIELDS.forEach(f=>{
     rows += `<tr><td>${f.label}</td><td>${data[f.key]}</td></tr>`;
