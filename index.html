@@ -383,8 +383,17 @@ await renderTopPDF(url);
 document.getElementById('downloadLink').href = url;
 document.getElementById('result').style.display = 'block';
 
-// ✅ po podpise scroll na vrch PDF
+// ✅ náhľad PDF
+const preview = document.getElementById('pdfPreview');
+preview.src = url;
+preview.style.display = 'block';
+
+// ✅ scroll ku náhľadu
 window.scrollTo({
-  top: document.getElementById('pdfCard').offsetTop - 20,
+  top: preview.offsetTop - 20,
   behavior: 'smooth'
 });
+
+}; // ✅ toto uzatvára btnConfirmSig funkciu
+</script>  <!-- ✅ toto MUSÍ zostať ako koniec scriptu -->
+
