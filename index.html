@@ -63,7 +63,7 @@
 
 <body>
 <div class="wrap">
-<h1>Podpísanie PDF – Mobilná verzia</h1>  
+ 
 
   <!-- PDF NAVRCHU -->
   <div class="card" id="pdfCard">
@@ -357,15 +357,16 @@ document.getElementById('btnConfirmSig').onclick = async()=>{
       ULOŽENIE PDF
      ========== */
 
-  const pdfBytes = await pdfDoc.save();
-  const url = URL.createObjectURL(
-    new Blob([pdfBytes],{type:'application/pdf'})
-  );
+ const pdfBytes = await pdfDoc.save();
+const url = URL.createObjectURL(
+  new Blob([pdfBytes], { type: 'application/pdf' })
+);
 
-  document.getElementById('downloadLink').href = url;
-  document.getElementById('result').style.display = 'block';
+// nastav link na stiahnutie
+document.getElementById('downloadLink').href = url;
+document.getElementById('result').style.display = 'block';
 
-
+// ✅ náhľad PDF
 const preview = document.getElementById('pdfPreview');
 preview.src = url;
 preview.style.display = 'block';
@@ -376,4 +377,5 @@ window.scrollTo({
   behavior: 'smooth'
 });
 
-</script>
+}; // ✅ toto uzatvára btnConfirmSig funkciu
+</script>  <!-- ✅ toto MUSÍ zostať ako koniec scriptu -->
