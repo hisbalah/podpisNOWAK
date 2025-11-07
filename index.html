@@ -285,20 +285,6 @@ window.onresize = ()=>{
 
 document.getElementById('btnConfirmSig').onclick = async()=>{
 
-async function flattenPdfPage(pdfDoc) {
-  const page = pdfDoc.getPages()[0];
-  const { width, height } = page.getSize();
-
-  // export stránky ako PNG
-  const pngBytes = await page.renderToPNG({ scale: 2 });
-
-  // zmaž obsah stránky
-  page.clearContent();
-
-  // vlož PNG ako novú grafickú vrstvu
-  const png = await pdfDoc.embedPng(pngBytes);
-  page.drawImage(png, { x: 0, y: 0, width, height });
-}
 
 
   if(signaturePad.isEmpty()){
@@ -315,7 +301,6 @@ async function flattenPdfPage(pdfDoc) {
   // načítaj pôvodné PDF
   const existingPdfBytes = await fetch(PDF_URL).then(r=>r.arrayBuffer());
   const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
-  await flattenPdfPage(pdfDoc);
   const page   = pdfDoc.getPages()[0];
 
   const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
