@@ -113,6 +113,10 @@
   </div>
 </div>
 
+<embed id="pdfPreview" type="application/pdf"
+       style="width:100%; height:600px; border:1px solid #ccc; margin-top:10px; display:none;">
+
+
 <!-- PDF.js -->
 <script src="https://unpkg.com/pdfjs-dist@2.16.105/build/pdf.min.js"></script>
 <script>
@@ -361,4 +365,15 @@ document.getElementById('btnConfirmSig').onclick = async()=>{
   document.getElementById('downloadLink').href = url;
   document.getElementById('result').style.display = 'block';
 };
+
+const preview = document.getElementById('pdfPreview');
+preview.src = url;
+preview.style.display = 'block';
+
+// ✅ scroll ku náhľadu
+window.scrollTo({
+  top: preview.offsetTop - 20,
+  behavior: 'smooth'
+});
+
 </script>
