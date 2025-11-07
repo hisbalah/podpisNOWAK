@@ -63,12 +63,12 @@
 
 <body>
 <div class="wrap">
- <h1>Podpísanie PDF (mobil‑ready, Signature Pad – Szymon Nowak)</h1>
+ 
 
   <!-- PDF NAVRCHU -->
   <div class="card" id="pdfCard">
     <div id="pdfLoading">Načítavam PDF…</div>
-    <canvas id="pdfCanvas" style="width:100%; max-width:100%; border:1px solid #ccc;"></canvas>
+    <canvas id="pdfCanvas"></canvas>
     <button id="btnFill" class="btn primary" style="margin-top:8px">Vyplniť údaje</button>
   </div>
 
@@ -160,8 +160,8 @@ async function renderTopPDF() {
     // PDF sa prispôsobí mobilu automaticky
     const viewport = page.getViewport({ scale: 1.3 });
 
-    pdfCanvas.style.height = viewport.height + "px";
-    pdfCanvas.style.width  = viewport.width + "px";
+    pdfCanvas.width  = viewport.width;
+    pdfCanvas.height = viewport.height;
 
     await page.render({
       canvasContext: pdfCtx,
