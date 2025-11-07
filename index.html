@@ -143,7 +143,7 @@ const FORM_FIELDS = [
   { key: 'adresa', label: 'Adresa',           type: 'text', required: true },
   { key: 'rc',     label: 'Rodné číslo',      type: 'text', required: true },
   { key: 'miesto', label: 'Miesto podpisu',   type: 'text', required: true },
-  { key: 'datum',  label: 'Dátum',            type: 'text', required: true }
+  { key: 'datum',  label: 'Dátum',            type: 'date', required: true }
 ];
 
 /* ✅ RENDER PDF NAVRCHU – FINÁLNA FUNKČNÁ VERZIA */
@@ -215,17 +215,17 @@ function buildForm(){
 function getFormData(){
   const data = {};
   FORM_FIELDS.forEach(f => {
-   let value = document.querySelector(`[name="${f.key}"]`).value;
+  let value = document.querySelector(`[name="${f.key}"]`).value;
 
-    // ✅ Ak ide o dátum, urob preformátovanie
-    if (f.key === 'datum') {
-      let v = value.replace(/\D/g, "");
-      if (v.length >= 8) {
-        value = `${v.slice(0,2)}.${v.slice(2,4)}.${v.slice(4,8)}`;
-      }
-    }
+// ✅ Ak ide o dátum (z input type="date": RRRR-MM-DD)
+if (f.key === 'datum') {
+  if (value && value.includes("-")) {
+    const parts = value.split("-");
+    value = `${parts[2]}.${parts[1]}.${parts[0]}`;
+  }
+}
 
-    data[f.key] = value;  
+data[f.key] = value; 
   });
   return data;
 }
