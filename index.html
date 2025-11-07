@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Mobilný e‑podpis – Signature Pad (Szymon Nowak)</title>
+<style>
+:root {
+--bg: #0b0c10;
+--fg: #e6eef8;
+--muted: #a7b1c2;
+--accent: #4f9ef8;
+--ok: #28a745;
+--warn: #ffb020;
+--danger: #e5534b;
+--card: #111319;
+--border: #1c2230;
+--radius: 14px;
+}
+html, body { margin:0; padding:0; background:var(--bg); color:var(--fg); font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+.wrap { max-width: 880px; margin: 0 auto; padding: 14px; }
+h1 { font-size: 22px; margin: 12px 0 10px; }
+.card { background: var(--card); border:1px solid var(--border); border-radius: var(--radius); padding: 12px; box-shadow: 0 6px 24px rgba(0,0,0,.25); }
+.row { display:flex; gap:10px; align-items:center; flex-wrap: wrap; }
+.btn { appearance:none; border:1px solid var(--border); background:#141925; color:var(--fg); padding:10px 14px; border-radius: 12px; font-weight:600; cursor:pointer; }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--accent); color:#0a0f1a; border-color: transparent; }
+.btn.ok { background: var(--ok); color:#08110a; border-color: transparent; }
+.btn.warn { background: var(--warn); color:#0b0c10; border-color: transparent; }
+.btn.danger { background: var(--danger); color: #140606; border-color: transparent; }
+.muted { color: var(--muted); }
+
+/* PDF viewer */
+#pdfCanvas { width: 100%; height: auto; border-radius: 10px; background:#0b0c10; display:block; }
+#pdfLoading { padding: 10px; font-size: 14px; }
+
+
+/* Form */
+form label { display:block; font-size: 13px; color: var(--muted); margin: 8px 2px 4px; }
+form input, form select, form textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border:1px solid var(--border); background:#0f1420; color:var(--fg); }
+
+
+/* Preview table */
+table.preview { width:100%; border-collapse: collapse; }
+table.preview td { padding: 8px 10px; border-bottom:1px dashed var(--border); vertical-align: top; }
+table.preview td.key { color: var(--muted); width: 34%; }
+
+
+/* Signature full‑screen modal */
+#sigModal { position: fixed; inset: 0; background: #07090f; display: none; z-index: 9999; }
+#sigInner { position: absolute; inset: 0; display:flex; flex-direction: column; }
+#sigHeader { padding: 10px; display:flex; gap:8px; justify-content: space-between; align-items:center; }
+#sigHeader .title { font-weight:700; }
+#sigCanvasWrap { position: relative; flex: 1; padding: 10px; }
+#sigCanvas { width: 100%; height: 100%; background:#0a0f19; border-top:1px solid var(--border); border-bottom:1px solid var(--border); touch-action: none; border-radius: 8px; }
+#sigGuide { position:absolute; left:16px; right:16px; bottom:22%; height:1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.25), transparent); pointer-events:none; }
+#sigFooter { padding:10px; display:flex; gap:8px; flex-wrap: wrap; }
+
+
+/* Result */
+#result { display:none; }
+
+
+.note { font-size:12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Podpísanie PDF (mobil‑ready, Signature Pad – Szymon Nowak)</h1>
+
+<!-- 1) PDF NAVRCHU -->
+<div class="card" id="pdfCard">
+<div id="pdfLoading">Načítavam PDF…</div>
+<canvas id="pdfCanvas"></canvas>
+<div class="row" style="margin-top:8px">
+<button id="btnFill" class="btn primary">Vyplniť údaje</button>
+</div>
+<div class="note" style="margin-top:6px">PDF sa zobrazuje navrchu, optimalizované pre mobil (zoom podľa šírky obrazovky).</div>
+</div>
+
+
+<!-- 2) FORMULÁR NA VYPLNENIE PODĽA PDF -->
+<div class="card" id="formCard" style="display:none">
+<form id="theForm"></form>
+<div class="row" style="margin-top:10px">
+<button id="btnConfirmData" class="btn ok">Potvrdiť údaje</button>
+<button id="btnCancelForm" class="btn">Zrušiť</button>
+</div>
+</div>
+
+
+<!-- 3) PREHĽAD – VYPLNENÝ FORM, MOŽNOSŤ OPRAVY -->
+<div class="card" id="previewCard" style="display:none">
+<div id="previewTableWrap"></div>
+<div class="row" style="margin-top:10px">
+<button id="btnEdit" class="btn warn">Opraviť údaje</button>
+<button id="btnSign" class="btn primary">Podpísať</button>
+</div>
+</div>
+
+<!-- 4) SIGNATURE MODAL – CEZ CELÚ OBRAZOVKU -->
+<div id="sigModal">
+<div id="sigInner">
+<div id="sigHeader">
+<div class="title">Podpis</div>
+<div class="row">
+<button id="btnCloseSig" class="btn">Zrušiť</button>
+</div>
+</div>
+<div id="sigCanvasWrap">
+<canvas id="sigCanvas"></canvas>
+<div id="sigGuide"></div>
+</div>
+<div id="sigFooter">
+<button id="btnClearSig" class="btn danger">Vymazať</button>
+<button id="btnConfirmSig" class="btn ok">Potvrdiť podpis</button>
+</div>
+</div>
+</div>
+
+
+<!-- 5) VÝSLEDOK – PDF S ÚDAJMI A PODPISOM, STIAHNUŤ / POSLAŤ NA EMAIL -->
+<div class="card" id="result" style="margin-bottom: 40px;">
+<div class="row">
+<a id="downloadLink" class="btn ok" download="vyplnene_podpisane.pdf">Stiahnuť PDF</a>
+<button id="btnEmailToggle" class="btn">Poslať na email</button>
+</div>
+<div id="emailBlock" style="display:none; margin-top:10px">
+<label for="emailTo" class="muted">Email príjemcu</label>
+<input id="emailTo" type="email" placeholder="klient@domena.com" />
+<div class="row" style="margin-top:8px">
+<button id="btnEmailSend" class="btn primary">Odoslať PDF emailom</button>
+<div class="note">Pozn.: na GitHub Pages treba pripojiť EmailJS (viď komentár v kóde).</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- CDN knižnice: pdf.js, pdf-lib, signature_pad, FileSaver (voliteľne) -->
+<!-- pdf.js (render zdrojového PDF navrchu) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.js"></script>
+<script>pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.js";</script>
+<!-- pdf-lib (vkladanie textu a podpisu do PDF) -->
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<!-- signature_pad od Szymona Nowaka -->
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+<!-- (voliteľne) FileSaver, ak by ste chceli saveAs(); tu generujeme URL.createObjectURL, takže netreba -->
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script> -->
+
+
+<!-- (voliteľne) EmailJS pre odoslanie emailu z GitHub Pages, ak chcete čisto client‑side
+1) https://www.emailjs.com/ → Create account, pridajte Service a Template
+2) vložte script a init: emailjs.init('VAŠ_PUBLIC_KEY')
+3) použite emailjs.send('service_id','template_id', {to_email, message, attachment})
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<script> (function(){ emailjs.init('VAŠ_PUBLIC_KEY'); })(); </script>
+-->
+
+
+<script>
+// ======= KONFIGURÁCIA =======
+// TODO: nastavte URL vášho PDF súboru (môže byť v tom istom repo)
+const PDF_URL = 'sample.pdf'; // nahraďte vlastným PDF
+
+
+// Definícia polí formulára (zodpovedá PDF)
+// Pridajte/odoberte podľa potreby
+const FORM_FIELDS = [
+ { key: 'meno', label: 'Meno a priezvisko', type: 'text', required: true },
+  { key: 'pobyt', label: 'Trvalý pobyt', type: 'text', required: true },
+  { key: 'rodne', label: 'Rodné číslo', type: 'text', required: true },
+  { key: 'miesto', label: 'Miesto podpisania', type: 'text', required: true },
+  { key: 'datum', label: 'Dátum', type: 'date', required: true },
+];
+
+
+// Miesto, kam sa vloží podpis a text do výsledného PDF (v bodoch, PDF koordináty)
+// POZOR: Koordináty sú odspodu hore (0,0 je dolný‑ľavý roh)
+const STAMP = {
+pageIndex: 0, // 0 = 1. strana
+signature: { x: 70, y: 120, width: 300 }, // pozícia podpisu
+// textové polia – jednoduchý príklad, vložíme dole do PDF
+fields: [
+{ key: 'meno', x: 70, y: 220, size: 12 },
+{ key: 'adresa', x: 70, y: 206, size: 12 },
+{ key: 'email', x: 70, y: 192, size: 12 },
+{ key: 'datum', x: 70, y: 178, size: 12 },
+]
+};
+
+
+// ========== 1) RENDER PDF NAVRCHU ==========
+const pdfCanvas = document.getElementById('pdfCanvas');
+const pdfCtx = pdfCanvas.getContext('2d');
+const pdfLoading = document.getElementById('pdfLoading');
+
+let pdfDoc = null; // PDFDocumentProxy (pdf.js)
+let firstPageViewport = null;
+
+
+async function renderTopPDF() {
+try {
+pdfLoading.textContent = 'Načítavam PDF…';
+pdfDoc = await pdfjsLib.getDocument(PDF_URL).promise;
+const page = await pdfDoc.getPage(1);
+
+
+// Zvoliť mierku podľa šírky obrazovky
+const desiredWidth = Math.min(window.innerWidth - 28, 860);
+const initViewport = page.getViewport({ scale: 1 });
+const scale = desiredWidth / initViewport.width;
+const viewport = page.getViewport({ scale });
+firstPageViewport = viewport;
+
+
+pdfCanvas.width = Math.floor(viewport.width);
+pdfCanvas.height = Math.floor(viewport.height);
+
+
+const renderContext = { canvasContext: pdfCtx, viewport };
+await page.render(renderContext).promise;
+pdfLoading.style.display = 'none';
+} catch (e) {
+pdfLoading.textContent = 'Chyba pri načítaní PDF: ' + e.message;
+console.error(e);
+}
+}
+
+
+window.addEventListener('resize', () => { // re-render pri otočení mobilu
+if (!pdfDoc) return;
+renderTopPDF();
+});
+
+
+// ========== 2) FORMULÁR ==========
+const formCard = document.getElementById('formCard');
+const theForm = document.getElementById('theForm');
+const btnFill = document.getElementById('btnFill');
+const btnCancelForm = document.getElementById('btnCancelForm');
+const btnConfirmData = document.getElementById('btnConfirmData');
+
+function buildForm() {
+theForm.innerHTML = '';
+FORM_FIELDS.forEach(f => {
+const id = 'f_' + f.key;
+const label = document.createElement('label');
+label.htmlFor = id; label.textContent = f.label + (f.required ? ' *' : '');
+const input = document.createElement(f.type === 'textarea' ? 'textarea' : 'input');
+input.id = id; input.name = f.key; input.type = f.type === 'textarea' ? undefined : f.type;
+if (f.required) input.required = true;
+theForm.appendChild(label);
+theForm.appendChild(input);
+});
+}
+
+
+function getFormData() {
+const data = {};
+FORM_FIELDS.forEach(f => {
+const el = document.querySelector(`[name="${f.key}"]`);
+data[f.key] = el ? el.value : '';
+});
+return data;
+}
+
+
+btnFill.addEventListener('click', () => {
+buildForm();
+formCard.style.display = 'block';
+document.getElementById('previewCard').style.display = 'none';
+document.getElementById('result').style.display = 'none';
+window.scrollTo({ top: document.getElementById('formCard').offsetTop - 8, behavior: 'smooth' });
+});
+
+
+btnCancelForm.addEventListener('click', (e) => {
+e.preventDefault();
+formCard.style.display = 'none';
+});
+
+
+// ========== 3) PREVIEW ==========
+const previewCard = document.getElementById('previewCard');
+const previewTableWrap = document.getElementById('previewTableWrap');
+const btnEdit = document.getElementById('btnEdit');
+
+
+btnConfirmData.addEventListener('click', (e) => {
+e.preventDefault();
+if (!theForm.reportValidity()) return;
+const data = getFormData();
+renderPreview(data);
+formCard.style.display = 'none';
+previewCard.style.display = 'block';
+window.scrollTo({ top: previewCard.offsetTop - 8, behavior: 'smooth' });
+});
+
+function renderPreview(data) {
+const rows = FORM_FIELDS.map(f => `<tr><td class="key">${f.label}</td><td>${escapeHtml(data[f.key] || '')}</td></tr>`).join('');
+previewTableWrap.innerHTML = `<table class="preview">${rows}</table>`;
+}
+
+
+btnEdit.addEventListener('click', () => {
+FORM_FIELDS.forEach(f => {
+const el = document.querySelector(`[name="${f.key}"]`);
+if (el) el.value = el.value || ''; // nechá hodnoty, ak sú
+});
+formCard.style.display = 'block';
+previewCard.style.display = 'none';
+window.scrollTo({ top: formCard.offsetTop - 8, behavior: 'smooth' });
+});
+
+
+// ========== 4) PODPIS ==========
+const btnSign = document.getElementById('btnSign');
+const sigModal = document.getElementById('sigModal');
+const sigCanvas = document.getElementById('sigCanvas');
+const btnClearSig = document.getElementById('btnClearSig');
+const btnConfirmSig = document.getElementById('btnConfirmSig');
+const btnCloseSig = document.getElementById('btnCloseSig');
+
+
+let signaturePad = null;
+
+
+function openSignature() {
+sigModal.style.display = 'block';
+lockScroll(true);
+resizeSigCanvas();
+signaturePad = new SignaturePad(sigCanvas, {
+minWidth: 0.7,
+maxWidth: 2.8,
+throttle: 16,
+minDistance: 0.1,
+penColor: '#e6eef8',
+backgroundColor: '#0a0f19',
+});
+}
+
+
+function closeSignature() {
+sigModal.style.display = 'none';
+lockScroll(false);
+if (signaturePad) { signaturePad.off(); signaturePad = null; }
+}
+
+
+function resizeSigCanvas() {
+const ratio = Math.max(window.devicePixelRatio || 1, 1);
+sigCanvas.width = Math.floor(sigCanvas.clientWidth * ratio);
+sigCanvas.height = Math.floor((window.innerHeight - 120) * ratio); // vyplní obrazovku
+const ctx = sigCanvas.getContext('2d');
+ctx.scale(ratio, ratio);
+}
+
+window.addEventListener('resize', () => { if (sigModal.style.display === 'block') resizeSigCanvas(); });
+
+
+function lockScroll(yes) {
+document.body.style.overflow = yes ? 'hidden' : '';
+}
+
+
+btnSign.addEventListener('click', openSignature);
+btnClearSig.addEventListener('click', () => signaturePad && signaturePad.clear());
+btnCloseSig.addEventListener('click', closeSignature);
+
+
+btnConfirmSig.addEventListener('click', async () => {
+if (!signaturePad || signaturePad.isEmpty()) { alert('Najprv sa podpíšte.'); return; }
+try {
+const sigDataUrl = signaturePad.toDataURL('image/png');
+closeSignature();
+await generateFinalPdf(sigDataUrl);
+document.getElementById('result').style.display = 'block';
+window.scrollTo({ top: document.getElementById('result').offsetTop - 8, behavior: 'smooth' });
+} catch (e) {
+alert('Chyba pri spracovaní podpisu: ' + e.message);
+console.error(e);
+}
+});
+
+
+// ========== 5) GENEROVANIE VÝSLEDNÉHO PDF ==========
+async function generateFinalPdf(signaturePngDataUrl) {
+const existingPdfBytes = await fetch(PDF_URL).then(r => r.arrayBuffer());
+const pdfDocLib = PDFLib; // alias
+const pdfDoc = await pdfDocLib.PDFDocument.load(existingPdfBytes);
+const pages = pdfDoc.getPages();
+const page = pages[STAMP.pageIndex || 0];
+
+
+// Vložiť textové polia
+const font = await pdfDoc.embedFont(pdfDocLib.StandardFonts.Helvetica);
+const data = getFormData();
+STAMP.fields.forEach(f => {
+const val = String(data[f.key] || '');
+page.drawText(val, { x: f.x, y: f.y, size: f.size || 12, font, color: pdfDocLib.rgb(1,1,1) });
+});
+
+
+// Podpis (PNG → embed)
+const png = await pdfDoc.embedPng(signaturePngDataUrl);
+const pngDims = png.scale(1);
+const targetWidth = STAMP.signature.width;
+const scale = targetWidth / pngDims.width;
+const targetHeight = pngDims.height * scale;
+page.drawImage(png, {
+x: STAMP.signature.x,
+y: STAMP.signature.y,
+width: targetWidth,
+height: targetHeight,
+});
+
+const pdfBytes = await pdfDoc.save();
+const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+const url = URL.createObjectURL(blob);
+const dl = document.getElementById('downloadLink');
+dl.href = url;
+}
+
+
+// ========== EMAIL (voliteľné s EmailJS) ==========
+const btnEmailToggle = document.getElementById('btnEmailToggle');
+const emailBlock = document.getElementById('emailBlock');
+const btnEmailSend = document.getElementById('btnEmailSend');
+
+
+btnEmailToggle.addEventListener('click', () => {
+emailBlock.style.display = emailBlock.style.display === 'none' ? 'block' : 'none';
+});
+
+
+btnEmailSend.addEventListener('click', async () => {
+const email = document.getElementById('emailTo').value.trim();
+if (!email) { alert('Zadajte email.'); return; }
+// Minimal client‑side odoslanie: odporúčam EmailJS. Nižšie je pseudo‑kód.
+// emailjs.send('SERVICE_ID', 'TEMPLATE_ID', { to_email: email, message: 'V prílohe PDF' }, 'PUBLIC_KEY')
+// .then(() => alert('Odoslané. Skontrolujte schránku.'))
+// .catch(err => alert('Nepodarilo sa odoslať: ' + err.message));
+alert('Demo: nastaviť EmailJS vo vašom projekte (pozrite komentár v kóde).');
+});
+
+
+// ========== UTIL ==========
+function escapeHtml(s) {
+return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+}
+
+
+// ŠTART
+renderTopPDF();
+</script>
+</body>
+</html>
