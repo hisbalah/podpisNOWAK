@@ -63,7 +63,7 @@
 
 <body>
 <div class="wrap">
-  <h1>Podpísanie PDF – Mobilná verzia</h1>
+  
 
   <!-- PDF NAVRCHU -->
   <div class="card" id="pdfCard">
@@ -357,15 +357,17 @@ document.getElementById('btnConfirmSig').onclick = async()=>{
       ULOŽENIE PDF
      ========== */
 
-  const pdfBytes = await pdfDoc.save();
-  const url = URL.createObjectURL(
-    new Blob([pdfBytes],{type:'application/pdf'})
-  );
+const pdfBytes = await pdfDoc.save();
 
-  document.getElementById('downloadLink').href = url;
-  document.getElementById('result').style.display = 'block';
-};
+// ✅ vytvoríme blob
+const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+const url = URL.createObjectURL(blob);
 
+// ✅ nastavíme link na stiahnutie
+document.getElementById('downloadLink').href = url;
+document.getElementById('result').style.display = 'block';
+
+// ✅ zobrazíme UPRAVENÉ PDF (nie sample.pdf!) cez <embed>
 const preview = document.getElementById('pdfPreview');
 preview.src = url;
 preview.style.display = 'block';
