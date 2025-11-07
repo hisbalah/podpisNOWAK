@@ -63,7 +63,7 @@
 
 <body>
 <div class="wrap">
- 
+ <h1>Podpísanie PDF – Mobilná verzia</h1>
 
   <!-- PDF NAVRCHU -->
   <div class="card" id="pdfCard">
@@ -383,9 +383,13 @@ await renderTopPDF(url);
 document.getElementById('downloadLink').href = url;
 document.getElementById('result').style.display = 'block';
 
-// ✅ MOBILNÝ FALLBACK (Android / iPhone)
-if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
-  window.open(url, '_blank');   // otvorí nové okno → mobil dovolí uložiť PDF
+// ✅ FORCE DOWNLOAD – funguje na desktope aj mobile
+const a = document.createElement('a');
+a.href = url;
+a.download = "vyplnene_podpisane.pdf";
+document.body.appendChild(a);
+a.click();
+a.remove();
 }
 
 }; // ✅ toto uzatvára btnConfirmSig funkciu
