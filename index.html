@@ -132,8 +132,13 @@
   <!-- PDF.js (stabilná verzia 2.16.105 – kompatibilná s pdfjsLib.getDocument) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 <script>
-  const pdfjsLib = window['pdfjsLib'];
-  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+  // Použi var, aby bola premenná aj na window (nie len global binding)
+  var pdfjsLib = window['pdfjsLib'] || window.pdfjsLib;
+  if (!pdfjsLib) {
+    console.error('PDF.js sa nenačítalo. Skontrolujte URL verzie.');
+  } else {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+  }
 </script>
 
 <!-- pdf-lib --> (vkladanie textu a podpisu do PDF) -->
