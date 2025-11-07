@@ -63,7 +63,7 @@
 
 <body>
 <div class="wrap">
-h1>Podpísanie PDF – Mobilná verzia</h1> 
+ 
 
   <!-- PDF NAVRCHU -->
   <div class="card" id="pdfCard">
@@ -113,7 +113,8 @@ h1>Podpísanie PDF – Mobilná verzia</h1>
   </div>
 </div>
 
-
+<embed id="pdfPreview" type="application/pdf"
+       style="width:100%; height:600px; border:1px solid #ccc; margin-top:10px; display:none;">
 
 
 <!-- PDF.js -->
@@ -382,8 +383,7 @@ await renderTopPDF(url);
 document.getElementById('downloadLink').href = url;
 document.getElementById('result').style.display = 'block';
 
-// ✅ po podpise scroll na vrch PDF
-window.scrollTo({
-  top: document.getElementById('pdfCard').offsetTop - 20,
-  behavior: 'smooth'
-});
+
+
+}; // ✅ toto uzatvára btnConfirmSig funkciu
+</script>  <!-- ✅ toto MUSÍ zostať ako koniec scriptu -->
