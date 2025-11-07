@@ -63,7 +63,7 @@
 
 <body>
 <div class="wrap">
- 
+<h1>Podpísanie PDF (mobil‑ready, Signature Pad – Szymon Nowak)</h1> 
 
   <!-- PDF NAVRCHU -->
   <div class="card" id="pdfCard">
@@ -362,20 +362,32 @@ const url = URL.createObjectURL(
   new Blob([pdfBytes], { type: 'application/pdf' })
 );
 
-// nastav link na stiahnutie
+// ✅ nastav link na stiahnutie
 document.getElementById('downloadLink').href = url;
 document.getElementById('result').style.display = 'block';
 
-// ✅ náhľad PDF
-const preview = document.getElementById('pdfPreview');
-preview.src = url;
-preview.style.display = 'block';
+/* ✅ ZOBRAZENIE UPRAVENÉHO PDF HORE V CANVASE */
 
-// ✅ scroll ku náhľadu
-window.scrollTo({
-  top: preview.offsetTop - 20,
-  behavior: 'smooth'
-});
+// vytvoríme nový PDF objekt pre PDF.js
+const updatedPdf = pdfjsLib.getDocument({ data: pdfBytes });
+const pdf = await updatedPdf.promise;
+const page = await pdf.getPage(1);
 
-}; // ✅ toto uzatvára btnConfirmSig funkciu
-</script>  <!-- ✅ toto MUSÍ zostať ako koniec scriptu -->
+const pdfCanvas = document.getElementById('pdfCanvas');
+const pdfCtx = pdfCanvas.getContext('2d');
+
+const viewport = page.getViewport({ scale: 1.3 });
+
+pdfCanvas.width = viewport.width;
+pdfCanvas.height = viewport.height;
+
+// načítaj upravenú stránku
+await page.render({
+  canvasContext: pdfCtx,
+  viewport: viewport
+}).promise;
+
+// scroll hore ku canvase
+window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+</script>
