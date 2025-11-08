@@ -431,23 +431,33 @@ await renderTopPDF(url);
 document.getElementById('downloadLink').href = url;
 document.getElementById('result').style.display = 'flex';
 
-// ✅ KONIEC
-
 }; // koniec btnConfirmSig
 
 
-// ✅ FUNKCIA NA ZATVORENIE CELEJ STRÁNKY + LOGO
+
+/* ==============================
+   ZATVORENIE STRÁNKY – 100% kompatibilné
+============================== */
+
 document.getElementById('btnCloseAll').onclick = ()=>{
 
-  // pokus o zavretie okna
+  // ✅ 1) pokus o normálne zatvorenie
+  window.open('', '_self');
   window.close();
 
-  // záloha, ak prehliadač blokuje window.close()
+  // ✅ 2) ak prehliadač zablokuje, zobrazíme čistú ukončovaciu obrazovku
   document.body.innerHTML = `
-    <div style="padding:25px; font-size:22px; text-align:center;">
-      <b>Hotovo ✅</b><br>
+    <div style="
+      padding:30px;
+      font-size:24px;
+      text-align:center;
+      font-weight:600;
+    ">
+      Hotovo ✅<br>
       Stránku môžete zavrieť.<br><br>
-      <img src="logo.png" style="width:140px; opacity:0.9; margin-top:10px;">
+
+      <img src="logo.png"
+           style="width:160px; margin-top:15px; opacity:0.9;">
     </div>
   `;
 };
