@@ -378,15 +378,17 @@ document.getElementById('btnConfirmSig').onclick = async()=>{
      ========== */
 
   const pngImage = await pdfDoc.embedPng(sigDataUrl);
-  const pngDims  = pngImage.scale(0.06);
 
-  // podpis medzi "splnomocniteľ" a bodkami — TY si upravíš
-  page.drawImage(pngImage, {
-    x: 140,     // ✔ približné miesto
-    y: 220,     // ✔ uprav si podľa potreby
-    width:  pngDims.width,
-    height: pngDims.height
-  });
+// Pevná veľkosť podpisu v PDF (napr. 120 × 40 px)
+const SIGN_W = 120;
+const SIGN_H = 40;
+
+page.drawImage(pngImage, {
+  x: 140,  
+  y: 220,
+  width:  SIGN_W,
+  height: SIGN_H
+});
 
 
   /* ==========
