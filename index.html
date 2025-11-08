@@ -64,7 +64,7 @@
 
 <body>
 <div class="wrap">
- 
+ <h1>Podpísanie PDF – Mobilná verzia</h1>
 
   <!-- PDF NAVRCHU -->
   <div class="card" id="pdfCard">
@@ -380,12 +380,12 @@ document.getElementById('btnConfirmSig').onclick = async()=>{
   const pngImage = await pdfDoc.embedPng(sigDataUrl);
 
 // Pevná veľkosť podpisu v PDF (napr. 120 × 40 px)
-const SIGN_W = 120;
+const SIGN_W = 110;
 const SIGN_H = 40;
 
 page.drawImage(pngImage, {
-  x: 140,  
-  y: 220,
+  x: 160,  
+  y: 170,
   width:  SIGN_W,
   height: SIGN_H
 });
