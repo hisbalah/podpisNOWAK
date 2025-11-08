@@ -64,7 +64,7 @@
 
 <body>
 <div class="wrap">
- 
+ <h1>Podpísanie PDF – Mobilná verzia</h1>
 
   <!-- PDF NAVRCHU -->
   <div class="card" id="pdfCard">
@@ -378,11 +378,11 @@ document.getElementById('btnConfirmSig').onclick = async()=>{
      ========== */
 
   const pngImage = await pdfDoc.embedPng(sigDataUrl);
-  const pngDims  = pngImage.scale(0.2);
+  const pngDims  = pngImage.scale(0.1);
 
   // podpis medzi "splnomocniteľ" a bodkami — TY si upravíš
   page.drawImage(pngImage, {
-    x: 100,     // ✔ približné miesto  horizontal
+    x: 120,     // ✔ približné miesto  horizontal
     y: 180,     // ✔ uprav si podľa potreby vertikal
     width:  pngDims.width,
     height: pngDims.height
