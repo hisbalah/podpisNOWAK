@@ -64,8 +64,7 @@
 
 <body>
 <div class="wrap">
-  <h1>Podpísanie PDF – Mobilná verzia</h1>
-
+ 
 
   <!-- PDF NAVRCHU -->
   <div class="card" id="pdfCard">
@@ -379,14 +378,12 @@ document.getElementById('btnConfirmSig').onclick = async()=>{
      ========== */
 
   const pngImage = await pdfDoc.embedPng(sigDataUrl);
-  // ✅ tu dáš presnú veľkosť podpisu v pixeloch (v PDF mm)
-const signatureWidth = 120;  // sem si daj svoju šírku
-const signatureHeight = 40;  // a svoju výšku
+  const pngDims  = pngImage.scale(0.6);
 
   // podpis medzi "splnomocniteľ" a bodkami — TY si upravíš
   page.drawImage(pngImage, {
-    x: 120,     // ✔ približné miesto
-    y: 200,     // ✔ uprav si podľa potreby
+    x: 200,     // ✔ približné miesto
+    y: 520,     // ✔ uprav si podľa potreby
     width:  pngDims.width,
     height: pngDims.height
   });
