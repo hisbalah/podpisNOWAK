@@ -4,8 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
   <title>Mobilný e-podpis – Signature Pad (Szymon Nowak)</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/l10n/sk.css">
+
   <style>
     :root {
       --bg: #ffffff;
@@ -53,23 +52,10 @@
       overflow-y:auto;
     }
 
-    /* ✅ Nový rámček + podklad pre podpis */
-    #sigBox {
-      width: 100%;
-      border: 2px solid #666;
-      border-radius: 8px;
-      padding: 10px;
-      background: #fafafa;
-    }
-
-    /* ✅ Plátno na podpis + podpisová čiara */
     #sigCanvas {
-      width: 100%;
-      height: 200px;
+      width:100%; height:100%;
       background: transparent !important;
-      touch-action: none;
-      display: block;
-      border-bottom: 2px solid #000; /* čiara na podpis */
+      touch-action:none;
     }
   </style>
 
@@ -77,7 +63,7 @@
 
 <body>
 <div class="wrap">
- <h1>Podpísanie PDF – Mobilná verzia</h1>
+  <h1>Podpísanie PDF – Mobilná verzia</h1>
 
   <!-- PDF NAVRCHU -->
   <div class="card" id="pdfCard">
@@ -112,13 +98,8 @@
     </div>
 
     <div style="height:65vh; padding:10px;">
-
-  <!-- ✅ Nový rámček + podpisová čiara -->
-  <div id="sigBox">
-    <canvas id="sigCanvas"></canvas>
-  </div>
-
-</div>
+      <canvas id="sigCanvas"></canvas>
+    </div>
 
     <div style="padding:10px; display:flex; gap:10px;">
       <button id="btnClearSig" class="btn danger">Vymazať</button>
@@ -131,10 +112,6 @@
     <a id="downloadLink" class="btn ok" download="vyplnene_podpisane.pdf">Stiahnuť PDF</a>
   </div>
 </div>
-
-<embed id="pdfPreview" type="application/pdf"
-       style="width:100%; height:600px; border:1px solid #ccc; margin-top:10px; display:none;">
-
 
 <!-- PDF.js -->
 <script src="https://unpkg.com/pdfjs-dist@2.16.105/build/pdf.min.js"></script>
@@ -149,9 +126,6 @@
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 
 <!-- Signature Pad (Szymon Nowak) -->
-<!-- Flatpickr -->
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/sk.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 
 <script>
@@ -164,53 +138,38 @@ const FORM_FIELDS = [
   { key: 'adresa', label: 'Adresa',           type: 'text', required: true },
   { key: 'rc',     label: 'Rodné číslo',      type: 'text', required: true },
   { key: 'miesto', label: 'Miesto podpisu',   type: 'text', required: true },
-  { key: 'datum',  label: 'Dátum',            type: 'text', required: true }
+  { key: 'datum',  label: 'Dátum',            type: 'date', required: true }
 ];
 
 /* ✅ RENDER PDF NAVRCHU – FINÁLNA FUNKČNÁ VERZIA */
-async function renderTopPDF(url = PDF_URL) {
+async function renderTopPDF() {
   try {
     const pdfCanvas = document.getElementById('pdfCanvas');
     const pdfCtx    = pdfCanvas.getContext('2d');
     const loading   = document.getElementById('pdfLoading');
 
-    loading.textContent = 'Načítavam PDF…';
-
-    const loadingTask = pdfjsLib.getDocument(url);
+    const loadingTask = pdfjsLib.getDocument(PDF_URL);
     const pdf = await loadingTask.promise;
+
     const page = await pdf.getPage(1);
 
-    // šírka cardu pre mobil
-    const cardWidth = document.getElementById('pdfCard').clientWidth - 20;
+    // PDF sa prispôsobí mobilu automaticky
+    const viewport = page.getViewport({ scale: 1.3 });
 
-    const unscaled = page.getViewport({ scale: 1 });
-    const scale = cardWidth / unscaled.width;
+    pdfCanvas.width  = viewport.width;
+    pdfCanvas.height = viewport.height;
 
-    const viewport = page.getViewport({ scale });
-
-    const dpr = window.devicePixelRatio || 1;
-
-    // CSS rozmery – aby to bolo široké presne ako spodný náhľad
-    pdfCanvas.style.width = viewport.width + 'px';
-    pdfCanvas.style.height = viewport.height + 'px';
-
-    // reálne rozmery (pre ostrosť)
-    pdfCanvas.width = viewport.width * dpr;
-    pdfCanvas.height = viewport.height * dpr;
-
-    const renderContext = {
+    await page.render({
       canvasContext: pdfCtx,
-      viewport,
-      transform: [dpr, 0, 0, dpr, 0, 0]
-    };
-
-    await page.render(renderContext).promise;
+      viewport: viewport
+    }).promise;
 
     loading.style.display = 'none';
 
   } catch (e) {
     document.getElementById('pdfLoading').textContent =
       'Chyba pri načítaní PDF: ' + e.message;
+    console.error(e);
   }
 }
 
@@ -233,30 +192,16 @@ function buildForm(){
   });
 }
 
-// ✅ Flatpickr pre slovenský kalendár s formátom DD.MM.YYYY
-function initFlatpickr() {
-  flatpickr("#f_datum", {
-    dateFormat: "d.m.Y",
-    allowInput: true,
-    locale: "sk"
-  });
-}
-
 function getFormData(){
   const data = {};
   FORM_FIELDS.forEach(f => {
-  let value = document.querySelector(`[name="${f.key}"]`).value;
-
-
-
-data[f.key] = value; 
+    data[f.key] = document.querySelector(`[name="${f.key}"]`).value;
   });
   return data;
 }
 
 document.getElementById('btnFill').onclick = () => {
   buildForm();
-  initFlatpickr();
   document.getElementById('formCard').style.display = 'block';
   document.getElementById('previewCard').style.display = 'none';
   document.getElementById('result').style.display = 'none';
@@ -271,9 +216,6 @@ document.getElementById('btnConfirmData').onclick = (e)=>{
   if(!theForm.reportValidity()) return;
 
   const data = getFormData();
-
-  
-
   let rows = '';
   FORM_FIELDS.forEach(f=>{
     rows += `<tr><td>${f.label}</td><td>${data[f.key]}</td></tr>`;
@@ -305,9 +247,9 @@ document.getElementById('btnSign').onclick = ()=>{
   resizeSigCanvas();
 
   signaturePad = new SignaturePad(sigCanvas, {
-    minWidth: 1.4,
-    maxWidth: 3.3,
-    penColor: '#4953bb',               // ✅ modrý podpis
+    minWidth: 1.1,
+    maxWidth: 3.0,
+    penColor: '#4953BB',               // ✅ modrý podpis
     backgroundColor: 'rgba(0,0,0,0)'   // ✅ priehľadné pozadie
   });
 
@@ -342,6 +284,8 @@ window.onresize = ()=>{
 ============================== */
 
 document.getElementById('btnConfirmSig').onclick = async()=>{
+
+
 
   if(signaturePad.isEmpty()){
     alert("Podpis je prázdny.");
@@ -396,42 +340,27 @@ document.getElementById('btnConfirmSig').onclick = async()=>{
      ========== */
 
   const pngImage = await pdfDoc.embedPng(sigDataUrl);
+  const pngDims  = pngImage.scale(0.6);
 
-// Pevná veľkosť podpisu v PDF (napr. 120 × 40 px)
-const SIGN_W = 170;
-const SIGN_H = 60;
-
-page.drawImage(pngImage, {
-  x: 130,  
-  y: 140,
-  width:  SIGN_W,
-  height: SIGN_H
-});
+  // podpis medzi "splnomocniteľ" a bodkami — TY si upravíš
+  page.drawImage(pngImage, {
+    x: 200,     // ✔ približné miesto
+    y: 520,     // ✔ uprav si podľa potreby
+    width:  pngDims.width,
+    height: pngDims.height
+  });
 
 
   /* ==========
       ULOŽENIE PDF
      ========== */
 
-const pdfBytes = await pdfDoc.save();
-const url = URL.createObjectURL(
-  new Blob([pdfBytes], { type: 'application/pdf' })
-);
-await renderTopPDF(url);
+  const pdfBytes = await pdfDoc.save();
+  const url = URL.createObjectURL(
+    new Blob([pdfBytes],{type:'application/pdf'})
+  );
 
-
-// ✅ PRIAME STIAHNUTIE BEZ OTVORENIA
-const a = document.createElement("a");
-a.href = url;
-a.download = "vyplnene_podpisane.pdf";
-document.body.appendChild(a);
-a.click();
-document.body.removeChild(a);
-
-// ✅ zobrazíme panel s tlačidlom (pre istotu)
-document.getElementById('downloadLink').href = url;
-document.getElementById('result').style.display = 'block';
-
-
-}; // ✅ toto uzatvára btnConfirmSig funkciu
-</script>  <!-- ✅ toto MUSÍ zostať ako koniec scriptu -->
+  document.getElementById('downloadLink').href = url;
+  document.getElementById('result').style.display = 'block';
+};
+</script>
