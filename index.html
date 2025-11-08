@@ -378,7 +378,7 @@ document.getElementById('btnConfirmSig').onclick = async()=>{
      ========== */
 
   const pngImage = await pdfDoc.embedPng(sigDataUrl);
-  const pngDims  = pngImage.scale(0.1);
+  const pngDims  = pngImage.scale(0.4);
 
   // podpis medzi "splnomocniteľ" a bodkami — TY si upravíš
   page.drawImage(pngImage, {
