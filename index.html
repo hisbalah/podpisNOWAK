@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="sk">
 <head>
@@ -77,7 +78,7 @@
 
 <body>
 <div class="wrap">
- <h1>Podpísanie PDF – Mobilná verzia</h1> 
+ 
 
   <!-- PDF NAVRCHU -->
   <div class="card" id="pdfCard">
@@ -420,13 +421,7 @@ const url = URL.createObjectURL(
 await renderTopPDF(url);
 
 
-// ✅ PRIAME STIAHNUTIE BEZ OTVORENIA
-const a = document.createElement("a");
-a.href = url;
-a.download = "vyplnene_podpisane.pdf";
-document.body.appendChild(a);
-a.click();
-document.body.removeChild(a);
+
 
 // ✅ zobrazíme panel s tlačidlom (pre istotu)
 document.getElementById('downloadLink').href = url;
