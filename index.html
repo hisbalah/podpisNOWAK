@@ -130,7 +130,10 @@
   <!-- VÝSLEDOK -->
   <div class="card" id="result" style="display:none">
     <a id="downloadLink" class="btn ok" download="vyplnene_podpisane.pdf">Stiahnuť PDF</a>
-    <button id="btnCloseAll" class="btn" style="background:#ccc">Zavrieť</button>
+   <button id="btnCloseAll" class="btn" 
+          style="background:#ccc; border-color:#bbb; width:130px; font-weight:600;">
+    Zavrieť
+  </button>
   </div>
 </div>
 
@@ -426,24 +429,26 @@ await renderTopPDF(url);
 
 // ✅ zobrazíme panel s tlačidlom (pre istotu)
 document.getElementById('downloadLink').href = url;
-document.getElementById('result').style.display = 'block';
+document.getElementById('result').style.display = 'flex';
 
-}; // ✅ toto uzatvára btnConfirmSig funkciu
+// ✅ KONIEC
+
+}; // koniec btnConfirmSig
 
 
-// ✅ FUNKCIA NA ZATVORENIE CELEJ STRÁNKY
+// ✅ FUNKCIA NA ZATVORENIE CELEJ STRÁNKY + LOGO
 document.getElementById('btnCloseAll').onclick = ()=>{
 
   // pokus o zavretie okna
   window.close();
 
-  // záloha keď to prehliadač nedovolí
+  // záloha, ak prehliadač blokuje window.close()
   document.body.innerHTML = `
-    <div style="padding:25px; font-size:20px; text-align:center;">
-      Hotovo ✅<br><br>
-      Stránku môžete zavrieť.
+    <div style="padding:25px; font-size:22px; text-align:center;">
+      <b>Hotovo ✅</b><br>
+      Stránku môžete zavrieť.<br><br>
+      <img src="logo.png" style="width:140px; opacity:0.9; margin-top:10px;">
     </div>
   `;
 };
-
-</script>  <!-- ✅ toto MUSÍ zostať ako koniec scriptu -->
+</script>
