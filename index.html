@@ -64,7 +64,7 @@
 
 <body>
 <div class="wrap">
- <h1>Podpísanie PDF – Mobilná verzia</h1>
+ 
 
   <!-- PDF NAVRCHU -->
   <div class="card" id="pdfCard">
@@ -287,7 +287,7 @@ document.getElementById('btnSign').onclick = ()=>{
   resizeSigCanvas();
 
   signaturePad = new SignaturePad(sigCanvas, {
-    minWidth: 2.8,
+    minWidth: 2.1,
     maxWidth: 5.8,
     penColor: '#0057ff',               // ✅ modrý podpis
     backgroundColor: 'rgba(0,0,0,0)'   // ✅ priehľadné pozadie
@@ -384,8 +384,8 @@ const SIGN_W = 190;
 const SIGN_H = 70;
 
 page.drawImage(pngImage, {
-  x: 140,  
-  y: 220,
+  x: 160,  
+  y: 190,
   width:  SIGN_W,
   height: SIGN_H
 });
