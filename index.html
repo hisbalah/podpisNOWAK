@@ -306,7 +306,7 @@ document.getElementById('btnClearSig').onclick = ()=>{
 };
 
 function resizeSigCanvas(){
-  const ratio = window.devicePixelRatio || 1;
+  const ratio = (window.devicePixelRatio || 1) * 3;  // extra DPI
   sigCanvas.width  = sigCanvas.clientWidth * ratio;
   sigCanvas.height = sigCanvas.clientHeight * ratio;
   sigCanvas.getContext('2d').scale(ratio, ratio);
@@ -378,12 +378,12 @@ document.getElementById('btnConfirmSig').onclick = async()=>{
      ========== */
 
   const pngImage = await pdfDoc.embedPng(sigDataUrl);
-  const pngDims  = pngImage.scale(0.6);
+  const pngDims  = pngImage.scale(0.15);
 
   // podpis medzi "splnomocniteľ" a bodkami — TY si upravíš
   page.drawImage(pngImage, {
-    x: 200,     // ✔ približné miesto
-    y: 520,     // ✔ uprav si podľa potreby
+    x: 150,     // ✔ približné miesto
+    y: 320,     // ✔ uprav si podľa potreby
     width:  pngDims.width,
     height: pngDims.height
   });
