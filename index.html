@@ -4,7 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
   <title>Mobilný e-podpis – Signature Pad (Szymon Nowak)</title>
-
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/l10n/sk.css">
   <style>
     :root {
       --bg: #ffffff;
@@ -63,7 +64,7 @@
 
 <body>
 <div class="wrap">
- 
+  <h1>Podpísanie PDF – Mobilná verzia</h1>
 
 
   <!-- PDF NAVRCHU -->
@@ -131,6 +132,9 @@
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 
 <!-- Signature Pad (Szymon Nowak) -->
+<!-- Flatpickr -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/sk.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 
 <script>
@@ -143,7 +147,7 @@ const FORM_FIELDS = [
   { key: 'adresa', label: 'Adresa',           type: 'text', required: true },
   { key: 'rc',     label: 'Rodné číslo',      type: 'text', required: true },
   { key: 'miesto', label: 'Miesto podpisu',   type: 'text', required: true },
-  { key: 'datum',  label: 'Dátum',            type: 'date', required: true }
+  { key: 'datum',  label: 'Dátum',            type: 'text', required: true }
 ];
 
 /* ✅ RENDER PDF NAVRCHU – FINÁLNA FUNKČNÁ VERZIA */
@@ -212,18 +216,21 @@ function buildForm(){
   });
 }
 
+// ✅ Flatpickr pre slovenský kalendár s formátom DD.MM.YYYY
+function initFlatpickr() {
+  flatpickr("#f_datum", {
+    dateFormat: "d.m.Y",
+    allowInput: true,
+    locale: "sk"
+  });
+}
+
 function getFormData(){
   const data = {};
   FORM_FIELDS.forEach(f => {
   let value = document.querySelector(`[name="${f.key}"]`).value;
 
-// ✅ Ak ide o dátum (z input type="date": RRRR-MM-DD)
-if (f.key === 'datum') {
-  if (value && value.includes("-")) {
-    const parts = value.split("-");
-    value = `${parts[2]}.${parts[1]}.${parts[0]}`;
-  }
-}
+
 
 data[f.key] = value; 
   });
@@ -232,6 +239,7 @@ data[f.key] = value;
 
 document.getElementById('btnFill').onclick = () => {
   buildForm();
+  initFlatpickr();
   document.getElementById('formCard').style.display = 'block';
   document.getElementById('previewCard').style.display = 'none';
   document.getElementById('result').style.display = 'none';
