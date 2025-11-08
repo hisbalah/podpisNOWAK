@@ -305,7 +305,7 @@ document.getElementById('btnSign').onclick = ()=>{
   resizeSigCanvas();
 
   signaturePad = new SignaturePad(sigCanvas, {
-    minWidth: 1.1,
+    minWidth: 1.0,
     maxWidth: 2.2,
     penColor: '#58389c',               // ✅ modrý podpis
     backgroundColor: 'rgba(0,0,0,0)'   // ✅ priehľadné pozadie
@@ -402,7 +402,7 @@ const SIGN_W = 170;
 const SIGN_H = 60;
 
 page.drawImage(pngImage, {
-  x: 115,  
+  x: 100,  
   y: 140,
   width:  SIGN_W,
   height: SIGN_H
