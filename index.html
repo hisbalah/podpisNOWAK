@@ -64,7 +64,7 @@
 
 <body>
 <div class="wrap">
- 
+ <h1>Podpísanie PDF – Mobilná verzia</h1>
 
 
   <!-- PDF NAVRCHU -->
@@ -307,7 +307,7 @@ document.getElementById('btnClearSig').onclick = ()=>{
 };
 
 function resizeSigCanvas(){
-  const ratio = window.devicePixelRatio || 1;
+  const ratio = (window.devicePixelRatio || 1) * 2.5;
   sigCanvas.width  = sigCanvas.clientWidth * ratio;
   sigCanvas.height = sigCanvas.clientHeight * ratio;
   sigCanvas.getContext('2d').scale(ratio, ratio);
