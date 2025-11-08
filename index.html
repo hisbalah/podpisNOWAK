@@ -130,6 +130,7 @@
   <!-- VÝSLEDOK -->
   <div class="card" id="result" style="display:none">
     <a id="downloadLink" class="btn ok" download="vyplnene_podpisane.pdf">Stiahnuť PDF</a>
+    <button id="btnCloseAll" class="btn" style="background:#ccc">Zavrieť</button>
   </div>
 </div>
 
@@ -427,6 +428,22 @@ await renderTopPDF(url);
 document.getElementById('downloadLink').href = url;
 document.getElementById('result').style.display = 'block';
 
-
 }; // ✅ toto uzatvára btnConfirmSig funkciu
+
+
+// ✅ FUNKCIA NA ZATVORENIE CELEJ STRÁNKY
+document.getElementById('btnCloseAll').onclick = ()=>{
+
+  // pokus o zavretie okna
+  window.close();
+
+  // záloha keď to prehliadač nedovolí
+  document.body.innerHTML = `
+    <div style="padding:25px; font-size:20px; text-align:center;">
+      Hotovo ✅<br><br>
+      Stránku môžete zavrieť.
+    </div>
+  `;
+};
+
 </script>  <!-- ✅ toto MUSÍ zostať ako koniec scriptu -->
