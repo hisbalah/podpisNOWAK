@@ -378,12 +378,12 @@ document.getElementById('btnConfirmSig').onclick = async()=>{
      ========== */
 
   const pngImage = await pdfDoc.embedPng(sigDataUrl);
-  const pngDims  = pngImage.scale(0.6);
+  const pngDims  = pngImage.scale(0.4);
 
   // podpis medzi "splnomocniteľ" a bodkami — TY si upravíš
   page.drawImage(pngImage, {
-    x: 150,     // ✔ približné miesto
-    y: 420,     // ✔ uprav si podľa potreby
+    x: 100,     // ✔ približné miesto
+    y: 200,     // ✔ uprav si podľa potreby
     width:  pngDims.width,
     height: pngDims.height
   });
