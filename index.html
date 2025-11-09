@@ -426,55 +426,48 @@ await renderTopPDF(url);
 // ✅ uložíme URL GLOBÁLNE
 window.pdfURL = url;
 
-// ✅ zobrazíme panel
-document.getElementById('result').style.display = 'flex';
-
-// ✅ SIMULÁCIA LOCK/UNLOCK – čaká na blur/focus cyklus
+// ✅ NAJPRV ZOBRAZÍME HLÁŠKU – až potom tlačidlá
 await new Promise(resolve => {
-  let unlocked = false;
+  const msg = document.createElement('div');
+  msg.style.cssText = `
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 600;
+    z-index: 99999;
+    text-align: center;
+    padding: 20px;
+  `;
+  msg.innerHTML = `
+    ✅ PDF je pripravené!<br><br>
+    <button style="
+      margin-top:20px;
+      padding:15px 30px;
+      background:#28a745;
+      color:white;
+      border:none;
+      border-radius:10px;
+      font-size:18px;
+      font-weight:600;
+      cursor:pointer;
+    ">Pokračovať</button>
+  `;
+  document.body.appendChild(msg);
   
-  const checkUnlock = () => {
-    if (document.hidden) {
-      // stránka išla do pozadia (ako lock)
-      unlocked = true;
-    } else if (unlocked) {
-      // stránka sa vrátila (ako unlock)
-      document.removeEventListener('visibilitychange', checkUnlock);
-      resolve();
-    }
+  msg.querySelector('button').onclick = () => {
+    msg.remove();
+    resolve();
   };
-  
-  document.addEventListener('visibilitychange', checkUnlock);
-  
-  // záložný timeout – ak by visibility nefungovala
-  setTimeout(() => {
-    document.removeEventListener('visibilitychange', checkUnlock);
-    
-    // zobrazíme jednoduchú hlášku
-    const msg = document.createElement('div');
-    msg.style.cssText = `
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #28a745;
-      color: white;
-      padding: 20px 30px;
-      border-radius: 12px;
-      font-size: 18px;
-      font-weight: 600;
-      z-index: 99999;
-      text-align: center;
-    `;
-    msg.innerHTML = `✅ PDF je pripravené!<br><br>Kliknite kdekoľvek pre pokračovanie`;
-    document.body.appendChild(msg);
-    
-    msg.onclick = () => {
-      msg.remove();
-      resolve();
-    };
-  }, 500);
 });
+
+// ✅ AŽ TERAZ zobrazíme tlačidlá (po kliku na hlášku)
+document.getElementById('result').style.display = 'flex';
 
 }; // koniec btnConfirmSig
 
