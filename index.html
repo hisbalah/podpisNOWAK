@@ -431,6 +431,22 @@ await renderTopPDF(url);
 document.getElementById('downloadLink').href = url;
 document.getElementById('result').style.display = 'flex';
 
+// ✅ Chrome Android user-gesture fix
+await new Promise(resolve => {
+  const ghostBtn = document.createElement("button");
+  ghostBtn.style.position = "fixed";
+  ghostBtn.style.left = "-9999px";
+  ghostBtn.textContent = ".";
+  document.body.appendChild(ghostBtn);
+
+  ghostBtn.addEventListener("click", () => {
+    ghostBtn.remove();
+    resolve();
+  }, { once: true });
+
+  ghostBtn.click();
+});
+
 }; // koniec btnConfirmSig
 
 
