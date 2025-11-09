@@ -427,7 +427,19 @@ await renderTopPDF(url);
 
 
 
-// ✅ zobrazíme panel s tlačidlom (pre istotu)
+// ✅ vytvoríme skutočný <a download> klik – Chrome Mobile to povolí
+const a = document.createElement("a");
+a.href = url;
+a.download = "vyplnene_podpisane.pdf";
+document.body.appendChild(a);
+
+// ✅ ihneď spustíme "click" – ale len raz po potvrdení podpisu
+setTimeout(() => {
+  a.click();
+  a.remove();
+}, 300);
+
+// ✅ ukážeme panel – ale už nespúšťame download druhýkrát
 document.getElementById('downloadLink').href = url;
 document.getElementById('result').style.display = 'flex';
 
