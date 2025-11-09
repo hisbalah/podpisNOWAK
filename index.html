@@ -434,6 +434,22 @@ dl.setAttribute("download", "vyplnene_podpisane.pdf");
 // ✅ ukážeme panel so stiahnutím
 document.getElementById('result').style.display = 'flex';
 
+/* ✅ Chrome Android FIX – obnov user gesture pre download a window.close */
+await new Promise(resolve => {
+    const h = document.createElement("button");
+    h.style.position = "fixed";
+    h.style.left = "-9999px";
+    h.innerText = ".";
+    document.body.appendChild(h);
+
+    h.addEventListener("click", () => {
+        h.remove();
+        resolve();
+    });
+
+    h.click();   // Chrome si myslí, že prebehol nový user gesture
+});
+
 }; // koniec btnConfirmSig
 
 
