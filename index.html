@@ -424,11 +424,6 @@ const url = URL.createObjectURL(
 );
 await renderTopPDF(url);
 
-// ✅ SIMULÁCIA LOCK/UNLOCK – jediný spoľahlivý trik pre Chrome Android
-document.body.style.opacity = "0.01";
-await new Promise(r => setTimeout(r, 250));
-document.body.style.opacity = "1";
-await new Promise(r => setTimeout(r, 150));
 
 
 // ✅ zobrazíme panel s tlačidlom (pre istotu)
