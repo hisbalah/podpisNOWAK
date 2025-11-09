@@ -426,10 +426,8 @@ const url = URL.createObjectURL(
 // ✅ zobrazíme náhľad PDF hore (nevyvoláva download)
 await renderTopPDF(url);
 
-// ✅ nastavíme link pre manuálne stiahnutie
-const dl = document.getElementById("downloadLink");
-dl.href = url;
-dl.setAttribute("download", "vyplnene_podpisane.pdf");
+// ✅ uložíme URL pre manuálny download
+window._generatedPdfUrl = url;
 
 // ✅ ukážeme panel so stiahnutím
 document.getElementById('result').style.display = 'flex';
