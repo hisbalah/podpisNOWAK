@@ -1,93 +1,50 @@
-
 <!doctype html>
 <html lang="sk">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
-  <title>Mobilný e-podpis – Signature Pad (Szymon Nowak)</title>
+  <title>Mobilný e-podpis – Signature Pad</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/l10n/sk.css">
   <style>
     :root {
       --bg: #D4B483;
-      --fg: #000000;
-      --muted: #444444;
+      --fg: #000;
+      --card: #fff;
+      --border: #ccc;
+      --radius: 14px;
       --accent: #0057ff;
       --ok: #28a745;
       --warn: #ffb020;
       --danger: #e5534b;
-      --card: #ffffff;
-      --border: #cccccc;
-      --radius: 14px;
     }
-
-    html, body {
-      margin:0; padding:0;
-      background:var(--bg); color:var(--fg);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      height:100%;
-      overflow-y:auto;
-    }
-
-    .wrap { max-width: 880px; margin: 0 auto; padding: 14px; }
-    .card { background: var(--card); border:1px solid var(--border); border-radius: var(--radius); padding: 12px; }
-    .row { display:flex; gap:10px; flex-wrap: wrap; }
-    .btn { appearance:none; border:1px solid var(--border); background:#eeeeee; color:#000; padding:10px 14px; border-radius: 12px; font-weight:600; cursor:pointer; }
-    .btn.primary { background: var(--accent); color:#fff; border-color: transparent; }
-    .btn.ok { background: var(--ok); color:#fff; }
-    .btn.warn { background: var(--warn); color:#fff; }
-    .btn.danger { background: var(--danger); color:#fff; }
-
-    form label { display:block; font-size: 13px; margin: 8px 2px 4px; }
-    form input { width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); }
-
-    table.preview { width:100%; border-collapse: collapse; }
-    table.preview td { padding: 8px 10px; border-bottom:1px dashed var(--border); }
-
-    /* Modal podpisu */
-    #sigModal {
-      position: fixed;
-      inset: 0;
-      background: rgba(255,255,255,0.98);
-      display: none;
-      z-index: 9999;
-      overflow-y:auto;
-    }
-
-    /* ✅ Nový rámček + podklad pre podpis */
-    #sigBox {
-      width: 100%;
-      border: 2px solid #666;
-      border-radius: 8px;
-      padding: 10px;
-      background: #fafafa;
-    }
-
-    /* ✅ Plátno na podpis + podpisová čiara */
-    #sigCanvas {
-      width: 100%;
-      height: 245px;
-      background: transparent !important;
-      touch-action: none;
-      display: block;
-      border-bottom: 2px solid #000; /* čiara na podpis */
-    }
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:system-ui,Segoe UI,Roboto,Arial;height:100%;overflow-y:auto}
+    .wrap{max-width:880px;margin:0 auto;padding:14px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:12px}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{appearance:none;border:1px solid var(--border);background:#eee;color:#000;padding:10px 14px;border-radius:12px;font-weight:600;cursor:pointer}
+    .btn.primary{background:var(--accent);color:#fff;border-color:transparent}
+    .btn.ok{background:var(--ok);color:#fff}
+    .btn.warn{background:var(--warn);color:#fff}
+    .btn.danger{background:var(--danger);color:#fff}
+    table.preview{width:100%;border-collapse:collapse}
+    table.preview td{padding:8px 10px;border-bottom:1px dashed var(--border)}
+    #sigModal{position:fixed;inset:0;background:rgba(255,255,255,0.98);display:none;z-index:9999;overflow-y:auto}
+    #sigBox{width:100%;border:2px solid #666;border-radius:8px;padding:10px;background:#fafafa}
+    #sigCanvas{width:100%;height:245px;background:transparent!important;touch-action:none;display:block;border-bottom:2px solid #000}
+    /* result panel layout */
+    #result{display:none;align-items:center;gap:10px}
   </style>
-
 </head>
-
 <body>
 <div class="wrap">
- 
 
-  <!-- PDF NAVRCHU -->
   <div class="card" id="pdfCard">
     <div id="pdfLoading">Načítavam PDF…</div>
     <canvas id="pdfCanvas"></canvas>
     <button id="btnFill" class="btn primary" style="margin-top:8px">Vyplniť údaje</button>
   </div>
 
-  <!-- FORMULÁR -->
   <div class="card" id="formCard" style="display:none">
     <form id="theForm"></form>
     <div class="row" style="margin-top:10px">
@@ -96,7 +53,6 @@
     </div>
   </div>
 
-  <!-- PREVIEW -->
   <div class="card" id="previewCard" style="display:none">
     <div id="previewTableWrap"></div>
     <div class="row" style="margin-top:10px">
@@ -105,353 +61,294 @@
     </div>
   </div>
 
-  <!-- MODAL PODPISU -->
   <div id="sigModal">
-    <div style="padding:10px; display:flex; justify-content:space-between;">
+    <div style="padding:10px;display:flex;justify-content:space-between;">
       <div style="font-weight:700">Podpis</div>
       <button id="btnCloseSig" class="btn">Zavrieť</button>
     </div>
-
-    <div style="height:50vh; padding:10px;">
-
-  <!-- ✅ Nový rámček + podpisová čiara -->
-  <div id="sigBox">
-    <canvas id="sigCanvas"></canvas>
-  </div>
-
-</div>
-
-    <div style="padding:10px; display:flex; gap:10px;">
+    <div style="height:50vh;padding:10px">
+      <div id="sigBox"><canvas id="sigCanvas"></canvas></div>
+    </div>
+    <div style="padding:10px;display:flex;gap:10px;">
       <button id="btnClearSig" class="btn danger">Vymazať</button>
       <button id="btnConfirmSig" class="btn ok">Potvrdiť podpis</button>
     </div>
   </div>
 
-  <!-- VÝSLEDOK -->
-  <div class="card" id="result" style="display:none">
+  <div class="card" id="result" style="display:none;flex-direction:row">
     <button id="btnManualDownload" class="btn ok">Stiahnuť PDF</button>
-   <button id="btnCloseAll" class="btn" 
-          style="background:#ccc; border-color:#bbb; width:130px; font-weight:600;">
-    Zavrieť
-  </button>
+    <button id="btnCloseAll" class="btn" style="background:#ccc;border-color:#bbb;width:130px;font-weight:600">Zavrieť</button>
   </div>
+
 </div>
 
-<embed id="pdfPreview" type="application/pdf"
-       style="width:100%; height:600px; border:1px solid #ccc; margin-top:10px; display:none;">
+<embed id="pdfPreview" type="application/pdf" style="width:100%;height:600px;border:1px solid #ccc;margin-top:10px;display:none;">
 
-
-<!-- PDF.js -->
+<!-- libs -->
 <script src="https://unpkg.com/pdfjs-dist@2.16.105/build/pdf.min.js"></script>
-<script>
-  // korektná inicializácia – funguje 100% na GitHube
-  var pdfjsLib = window['pdfjsLib'];
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    "https://unpkg.com/pdfjs-dist@2.16.105/build/pdf.worker.min.js";
-</script>
-
-<!-- PDF-LIB -->
+<script>var pdfjsLib = window['pdfjsLib']; pdfjsLib.GlobalWorkerOptions.workerSrc = "https://unpkg.com/pdfjs-dist@2.16.105/build/pdf.worker.min.js";</script>
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-
-<!-- Signature Pad (Szymon Nowak) -->
-<!-- Flatpickr -->
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/sk.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 
 <script>
-/* PDF URL – ponechávam tvoju hodnotu */
-const PDF_URL = 'sample.pdf';
-
-/* FORM FIELDS */
+/* -------- config -------- */
+const PDF_URL = 'sample.pdf'; // uprav ak treba
 const FORM_FIELDS = [
-  { key: 'meno',   label: 'Meno a priezvisko', type: 'text', required: true },
-  { key: 'adresa', label: 'Adresa',           type: 'text', required: true },
-  { key: 'rc',     label: 'Rodné číslo',      type: 'text', required: true },
-  { key: 'miesto', label: 'V meste',   type: 'text', required: true },
-  { key: 'datum',  label: 'Dátum',            type: 'text', required: true }
+  { key: 'meno', label: 'Meno a priezvisko', type:'text', required:true },
+  { key: 'adresa', label: 'Adresa', type:'text', required:true },
+  { key: 'rc', label:'Rodné číslo', type:'text', required:true },
+  { key: 'miesto', label:'V meste', type:'text', required:true },
+  { key: 'datum', label:'Dátum', type:'text', required:true }
 ];
 
-/* ✅ RENDER PDF NAVRCHU – FINÁLNA FUNKČNÁ VERZIA */
+/* -------- utils / render PDF preview -------- */
 async function renderTopPDF(url = PDF_URL) {
   try {
     const pdfCanvas = document.getElementById('pdfCanvas');
-    const pdfCtx    = pdfCanvas.getContext('2d');
-    const loading   = document.getElementById('pdfLoading');
-
+    const pdfCtx = pdfCanvas.getContext('2d');
+    const loading = document.getElementById('pdfLoading');
     loading.textContent = 'Načítavam PDF…';
-
     const loadingTask = pdfjsLib.getDocument(url);
     const pdf = await loadingTask.promise;
     const page = await pdf.getPage(1);
-
-    // šírka cardu pre mobil
     const cardWidth = document.getElementById('pdfCard').clientWidth - 20;
-
-    const unscaled = page.getViewport({ scale: 1 });
+    const unscaled = page.getViewport({ scale:1 });
     const scale = cardWidth / unscaled.width;
-
     const viewport = page.getViewport({ scale });
-
     const dpr = window.devicePixelRatio || 1;
-
-    // CSS rozmery – aby to bolo široké presne ako spodný náhľad
     pdfCanvas.style.width = viewport.width + 'px';
     pdfCanvas.style.height = viewport.height + 'px';
-
-    // reálne rozmery (pre ostrosť)
     pdfCanvas.width = viewport.width * dpr;
     pdfCanvas.height = viewport.height * dpr;
-
-    const renderContext = {
-      canvasContext: pdfCtx,
-      viewport,
-      transform: [dpr, 0, 0, dpr, 0, 0]
-    };
-
+    const renderContext = { canvasContext: pdfCtx, viewport, transform:[dpr,0,0,dpr,0,0] };
     await page.render(renderContext).promise;
-
     loading.style.display = 'none';
-
   } catch (e) {
-    document.getElementById('pdfLoading').textContent =
-      'Chyba pri načítaní PDF: ' + e.message;
+    const loading = document.getElementById('pdfLoading');
+    loading.textContent = 'Chyba pri načítaní PDF: ' + e.message;
   }
 }
-
 renderTopPDF();
 
-/* ==============================
-      FORM – BUILD & PREVIEW
-============================== */
-
+/* -------- form builders -------- */
 const theForm = document.getElementById('theForm');
-
 function buildForm(){
   theForm.innerHTML = '';
-  FORM_FIELDS.forEach(f => {
-    const id = "f_" + f.key;
-    theForm.innerHTML += `
-      <label for="${id}">${f.label}</label>
-      <input id="${id}" name="${f.key}" type="${f.type}" ${f.required ? 'required' : ''}>
-    `;
+  FORM_FIELDS.forEach(f=>{
+    const id = "f_"+f.key;
+    theForm.innerHTML += `<label for="${id}">${f.label}</label><input id="${id}" name="${f.key}" type="${f.type}" ${f.required? 'required':''}>`;
   });
+  // init flatpickr if datum present
+  if(document.querySelector('#f_datum')) {
+    flatpickr("#f_datum",{dateFormat:"d.m.Y",allowInput:true,locale:"sk"});
+  }
 }
-
-// ✅ Flatpickr pre slovenský kalendár s formátom DD.MM.YYYY
-function initFlatpickr() {
-  flatpickr("#f_datum", {
-    dateFormat: "d.m.Y",
-    allowInput: true,
-    locale: "sk"
-  });
-}
-
 function getFormData(){
   const data = {};
-  FORM_FIELDS.forEach(f => {
-  let value = document.querySelector(`[name="${f.key}"]`).value;
-
-
-
-data[f.key] = value; 
+  FORM_FIELDS.forEach(f=>{
+    const el = document.querySelector(`[name="${f.key}"]`);
+    data[f.key] = el ? el.value : '';
   });
   return data;
 }
 
-document.getElementById('btnFill').onclick = () => {
+/* -------- buttons flow -------- */
+document.getElementById('btnFill').onclick = ()=>{
   buildForm();
-  initFlatpickr();
   document.getElementById('formCard').style.display = 'block';
   document.getElementById('previewCard').style.display = 'none';
   document.getElementById('result').style.display = 'none';
 };
-
-document.getElementById('btnCancelForm').onclick = () => {
-  document.getElementById('formCard').style.display = 'none';
-};
+document.getElementById('btnCancelForm').onclick = ()=> document.getElementById('formCard').style.display = 'none';
 
 document.getElementById('btnConfirmData').onclick = (e)=>{
   e.preventDefault();
   if(!theForm.reportValidity()) return;
-
   const data = getFormData();
-
-  
-
   let rows = '';
-  FORM_FIELDS.forEach(f=>{
-    rows += `<tr><td>${f.label}</td><td>${data[f.key]}</td></tr>`;
-  });
-
-  document.getElementById('previewTableWrap').innerHTML =
-    `<table class='preview'>${rows}</table>`;
-
+  FORM_FIELDS.forEach(f=> rows += `<tr><td>${f.label}</td><td>${data[f.key]}</td></tr>`);
+  document.getElementById('previewTableWrap').innerHTML = `<table class='preview'>${rows}</table>`;
   document.getElementById('formCard').style.display = 'none';
   document.getElementById('previewCard').style.display = 'block';
 };
 
-document.getElementById('btnEdit').onclick = ()=>{
+document.getElementById('btnEdit').onclick = ()=> {
   document.getElementById('previewCard').style.display = 'none';
   document.getElementById('formCard').style.display = 'block';
 };
 
-
-/* ==============================
-      SIGNATURE PAD – MODAL
-============================== */
-
+/* -------- signature pad modal -------- */
 let signaturePad;
-const sigModal  = document.getElementById('sigModal');
+const sigModal = document.getElementById('sigModal');
 const sigCanvas = document.getElementById('sigCanvas');
+
+function resizeSigCanvas(){
+  const ratio = (window.devicePixelRatio || 1) * 2.0;
+  sigCanvas.width = sigCanvas.clientWidth * ratio;
+  sigCanvas.height = sigCanvas.clientHeight * ratio;
+  sigCanvas.getContext('2d').scale(ratio, ratio);
+}
+window.addEventListener('resize', ()=>{ if(sigModal.style.display==='block') resizeSigCanvas(); });
 
 document.getElementById('btnSign').onclick = ()=>{
   sigModal.style.display = 'block';
   resizeSigCanvas();
-
-  signaturePad = new SignaturePad(sigCanvas, {
-    minWidth: 0.9,
-    maxWidth: 2.2,
-    penColor: '#58389c',               // ✅ modrý podpis
-    backgroundColor: 'rgba(0,0,0,0)'   // ✅ priehľadné pozadie
-  });
-
-  document.body.style.overflow = "hidden"; // fix pre mobil
+  signaturePad = new SignaturePad(sigCanvas, { minWidth:0.9, maxWidth:2.2, penColor:'#58389c', backgroundColor:'rgba(0,0,0,0)' });
+  document.body.style.overflow = 'hidden';
 };
-
 document.getElementById('btnCloseSig').onclick = ()=>{
   sigModal.style.display = 'none';
-  document.body.style.overflow = "";
+  document.body.style.overflow = '';
 };
+document.getElementById('btnClearSig').onclick = ()=> { if(signaturePad) signaturePad.clear(); };
 
-document.getElementById('btnClearSig').onclick = ()=>{
-  if(signaturePad) signaturePad.clear();
-};
-
-function resizeSigCanvas(){
-   const ratio = (window.devicePixelRatio || 1) * 2.5;   // zvýšené DPI
-  sigCanvas.width  = sigCanvas.clientWidth * ratio;
-  sigCanvas.height = sigCanvas.clientHeight * ratio;
-  sigCanvas.getContext('2d').scale(ratio, ratio);
+/* -------- helper: open window synchronously then later trigger download there -------- */
+function openBlankWindowForDownload() {
+  // otvoríme blank okno synchronne v rámci kliknutia (pre user gesture)
+  try {
+    const w = window.open('', '_blank');
+    // niektoré prehliadače vrátia null ak to zablokovali
+    return w;
+  } catch(e) {
+    return null;
+  }
 }
 
-window.onresize = ()=>{
-  if(sigModal.style.display === 'block'){
-    resizeSigCanvas();
+function triggerDownloadInWindow(win, blobUrl, filename){
+  if(!win || win.closed){
+    // fallback: stiahnuť v aktuálnom okne (neoptimálne, ale aspoň funguje)
+    const a = document.createElement('a');
+    a.href = blobUrl; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    return;
   }
-};
+  // vložíme jednoduchú stránku ktorá auto-clickne a ukáže aj "zatvoriť" tlačidlo
+  const html = `
+    <!doctype html>
+    <html>
+    <head><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
+    <body style="font-family:Arial,Helvetica,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px">
+      <p style="font-weight:600">Stiahnuť PDF…</p>
+      <a id="d" href="${blobUrl}" download="${filename}" style="display:none"></a>
+      <button id="b" style="padding:10px 14px;font-weight:600">Ak sa sťahovanie nespustí automaticky, kliknite sem</button>
+      <div style="height:12px"></div>
+      <button id="close" style="padding:10px 14px;margin-top:8px">Zatvoriť toto okno</button>
+      <script>
+        const a = document.getElementById('d');
+        const b = document.getElementById('b');
+        const c = document.getElementById('close');
+        // auto-click (bude fungovať ak toto okno bolo otvorené v user gesture)
+        try { a.click(); } catch(e){}
+        b.addEventListener('click', ()=> a.click());
+        c.addEventListener('click', ()=> window.close());
+      <\/script>
+    </body>
+    </html>
+  `;
+  // napíšeme obsah do nového okna
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+}
 
-
-/* ==============================
-      FINAL PDF EXPORT
-============================== */
-
-document.getElementById('btnConfirmSig').onclick = async()=>{
-
-  if(signaturePad.isEmpty()){
-    alert("Podpis je prázdny.");
+/* -------- main PDF generation & download flow -------- */
+document.getElementById('btnConfirmSig').onclick = async ()=>{
+  if(!signaturePad || signaturePad.isEmpty()){
+    alert('Podpis je prázdny.');
     return;
   }
 
+  // otvoríme blank window synchronne v rámci kliknutia (user gesture)
+  const downloadWindow = openBlankWindowForDownload();
+
+  // zatvor modal a obnov scroll
   sigModal.style.display = 'none';
-  document.body.style.overflow = "";
+  document.body.style.overflow = '';
 
-  const sigDataUrl = signaturePad.toDataURL('image/png');
+  // generujeme PDF asynchrónne
+  try {
+    const sigDataUrl = signaturePad.toDataURL('image/png');
+    const existingPdfBytes = await fetch(PDF_URL).then(r=>r.arrayBuffer());
+    const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
+    const page = pdfDoc.getPages()[0];
+    const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+    const data = getFormData();
 
-  const existingPdfBytes = await fetch(PDF_URL).then(r=>r.arrayBuffer());
-  const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
-  const page   = pdfDoc.getPages()[0];
+    const fieldsXY = {
+      meno: {x:170,y:696}, adresa:{x:170,y:673}, rc:{x:170,y:650}, miesto:{x:280,y:265}, datum:{x:118,y:265}
+    };
+    for(const f of FORM_FIELDS){
+      const xy = fieldsXY[f.key];
+      if(!xy) continue;
+      page.drawText(String(data[f.key] || ""), { x:xy.x, y:xy.y, size:12, font, color: PDFLib.rgb(0,0,0) });
+    }
 
-  const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
-  const data = getFormData();
+    const pngImage = await pdfDoc.embedPng(sigDataUrl);
+    page.drawImage(pngImage, { x:75, y:140, width:170, height:60 });
 
-  const fieldsXY = {
-    meno:   {x: 170, y: 696},
-    adresa: {x: 170, y: 673},
-    rc:     {x: 170, y: 650},
-    miesto: {x: 280, y: 265},
-    datum:  {x: 118, y: 265}
-  };
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
 
-  for(const f of FORM_FIELDS){
-    const xy = fieldsXY[f.key];
-    if(!xy) continue;
+    // uložíme pre manuálne použitie
+    window._generatedPdfUrl = url;
 
-    page.drawText(String(data[f.key] || ""), {
-      x: xy.x,
-      y: xy.y,
-      size: 12,
-      font,
-      color: PDFLib.rgb(0,0,0)
-    });
+    // zobrazíme preview nadhore (nepovodzuje download)
+    await renderTopPDF(url);
+
+    // zobrazíme result panel (manuálny download)
+    document.getElementById('result').style.display = 'flex';
+
+    // ak sme otvorili downloadWindow, spustíme download v ňom (trigger má user-gesture)
+    if(downloadWindow){
+      triggerDownloadInWindow(downloadWindow, url, 'vyplnene_podpisane.pdf');
+    } else {
+      // ak zablokované, necháme používateľa kliknúť manuálne
+      // (result panel poskytne tlačidlo Stiahnuť)
+    }
+
+  } catch (err) {
+    alert('Chyba pri generovaní PDF: ' + (err && err.message ? err.message : err));
   }
+};
 
-  const pngImage = await pdfDoc.embedPng(sigDataUrl);
+/* -------- manual download button (user gesture) -------- */
+document.getElementById('btnManualDownload').onclick = ()=>{
+  const url = window._generatedPdfUrl;
+  if(!url){
+    alert('PDF ešte nebol vygenerovaný. Najprv potvrďte podpis.');
+    return;
+  }
+  // otvoríme nové okno synchronne a spustíme download tam
+  const w = openBlankWindowForDownload();
+  if(w){
+    triggerDownloadInWindow(w, url, 'vyplnene_podpisane.pdf');
+  } else {
+    // fallback: v aktuálnom okne
+    const a = document.createElement('a');
+    a.href = url; a.download = 'vyplnene_podpisane.pdf';
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+};
 
-  page.drawImage(pngImage, {
-    x: 75,
-    y: 140,
-    width: 170,
-    height: 60
-  });
-
-  const pdfBytes = await pdfDoc.save();
-  const url = URL.createObjectURL(
-    new Blob([pdfBytes], { type: 'application/pdf' })
-  );
-
-  await renderTopPDF(url);
-
-  // ✅ len uložíme URL pre download
-  window._generatedPdfUrl = url;
-
-  // ✅ ukážeme panel so stiahnutím
-  document.getElementById('result').style.display = 'flex';
-
-}; // koniec btnConfirmSig
-
-
-/* ==============================
-   ZATVORENIE STRÁNKY – 100% kompatibilné
-============================== */
-
+/* -------- close behaviour -------- */
 document.getElementById('btnCloseAll').onclick = ()=>{
-
-  // ✅ 1) pokus o normálne zatvorenie
- window.location.href = "hotovo.html";
-
-  // ✅ 2) ak prehliadač zablokuje, zobrazíme čistú ukončovaciu obrazovku
+  // ak táto stránka bola otvorená iným oknom cez window.open (má opener), môžeme zavrieť
+  try {
+    if (window.opener) {
+      window.close();
+      return;
+    }
+  } catch(e){}
+  // inak presmerujeme na jednoduchú stránku / alebo zobrazíme ukončovaciu správu
   document.body.innerHTML = `
-    <div style="
-      padding:30px;
-      font-size:24px;
-      text-align:center;
-      font-weight:600;
-    ">
-      Hotovo ✅<br>
-      Stránku môžete zavrieť.<br><br>
-
-      <img src="logo.png"
-           style="width:160px; margin-top:15px; opacity:0.9;">
+    <div style="padding:30px;font-size:24px;text-align:center;font-weight:600">
+      Hotovo ✅<br>Stránku môžete zavrieť.<br><br>
+      <img src="logo.png" style="width:160px;margin-top:15px;opacity:0.9">
     </div>
   `;
 };
-
-  // ✅ Manuálny download – funguje 100% na Android Chrome
-document.getElementById("btnManualDownload").onclick = () => {
-    const url = window._generatedPdfUrl;
-    if (!url) return;
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "vyplnene_podpisane.pdf";
-
-    // musí byť v DOM, aby Chrome akceptoval klik
-    document.body.appendChild(a);
-
-    a.click();   // skutočný user gesture
-    a.remove();
-};
-
-  
 </script>
+</body>
+</html>
