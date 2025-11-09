@@ -73,7 +73,8 @@
       border-bottom: 2px solid #000; /* čiara na podpis */
     }
   </style>
-
+  
+  
 </head>
 
 <body>
@@ -158,6 +159,11 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/sk.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+<!-- EmailJS -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script>
+  emailjs.init("BDiw7IJQiDnlCYFPX");
+</script>
 
 <script>
 /* PDF URL – ponechávam tvoju hodnotu */
@@ -424,8 +430,9 @@ const url = URL.createObjectURL(
 
 // ✅ uložíme URL GLOBÁLNE
 window.pdfURL = url;
+window.pdfBytes = pdfBytes; // potrebujeme pre email
 
-// ✅ NÁHĽAD + TLAČIDLÁ – všetko v jednom overlay
+// ✅ NÁHĽAD + TLAČIDLÁ
 const msg = document.createElement('div');
 msg.style.cssText = `
   position: fixed;
@@ -497,6 +504,15 @@ msg.innerHTML = `
       cursor: pointer;
     ">✖️ Zavrieť</button>
   </div>
+  
+  <div id="emailStatus" style="
+    padding: 10px;
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+  ">
+    📧 Odosielam na email...
+  </div>
 `;
 
 document.body.appendChild(msg);
@@ -536,7 +552,49 @@ async function renderFinalPDF() {
 
 await renderFinalPDF();
 
-// ✅ STIAHNUTIE – priamo v user gesture kontexte
+// ✅ AUTOMATICKÉ ODOSLANIE NA EMAIL
+async function sendEmailWithPDF() {
+  try {
+    const data = getFormData();
+    
+    // konvertuj PDF na base64
+    const base64PDF = btoa(
+      new Uint8Array(window.pdfBytes)
+        .reduce((data, byte) => data + String.fromCharCode(byte), '')
+    );
+    
+    const templateParams = {
+      user_name: data.meno,
+      user_rc: data.rc,
+      user_adresa: data.adresa,
+      user_miesto: data.miesto,
+      user_datum: data.datum,
+      pdf_file: base64PDF,
+      pdf_filename: 'podpisany_dokument.pdf'
+    };
+    
+    await emailjs.send(
+      'service_9bhd9an',
+      'template_184peha',
+      templateParams
+    );
+    
+    document.getElementById('emailStatus').innerHTML = 
+      '✅ Email bol úspešne odoslaný!';
+    document.getElementById('emailStatus').style.color = '#28a745';
+    
+  } catch (error) {
+    console.error('Chyba pri odosielaní emailu:', error);
+    document.getElementById('emailStatus').innerHTML = 
+      '⚠️ Email sa nepodarilo odoslať';
+    document.getElementById('emailStatus').style.color = '#e5534b';
+  }
+}
+
+// spusti odosielanie na pozadí
+sendEmailWithPDF();
+
+// ✅ STIAHNUTIE
 document.getElementById('btnDownloadNow').onclick = () => {
   const a = document.createElement('a');
   a.href = window.pdfURL;
@@ -545,7 +603,6 @@ document.getElementById('btnDownloadNow').onclick = () => {
   a.click();
   document.body.removeChild(a);
   
-  // po stiahnutí ukáž potvrdenie
   msg.innerHTML = `
     <div style="
       display: flex;
@@ -573,7 +630,7 @@ document.getElementById('btnDownloadNow').onclick = () => {
   `;
 };
 
-// ✅ ZATVORENIE – priamo v user gesture kontexte
+// ✅ ZATVORENIE
 document.getElementById('btnCloseNow').onclick = () => {
   window.open('', '_self');
   window.close();
