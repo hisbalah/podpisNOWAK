@@ -128,7 +128,7 @@
   </div>
 
    <!-- VÝSLEDOK -->
-  <div class="card" id="result" style="display:none; gap:10px;">
+  <div class="card" id="result" style="display:none">
     <button id="btnDownloadPDF" class="btn ok">Stiahnuť PDF</button>
     <button id="btnCloseAll" class="btn" 
             style="background:#ccc; border-color:#bbb; width:130px; font-weight:600;">
@@ -413,7 +413,7 @@ page.drawImage(pngImage, {
 });
 
 
-/* ==========
+  /* ==========
       ULOŽENIE PDF
      ========== */
 const pdfBytes = await pdfDoc.save();
@@ -422,102 +422,98 @@ const url = URL.createObjectURL(
 );
 await renderTopPDF(url);
 
-// ✅ uložíme URL GLOBÁLNE (DÔLEŽITÉ!)
-window.finalPdfUrl = url;
+// ✅ uložíme URL GLOBÁLNE
+window.pdfURL = url;
 
-// ✅ zobrazíme panel s tlačidlom
+// ✅ zobrazíme panel
 document.getElementById('result').style.display = 'flex';
 
-// ✅ RIEŠENIE: OVERLAY S KLIKNUTÍM – obnovuje user gesture
+// ✅ SIMULÁCIA LOCK/UNLOCK – čaká na blur/focus cyklus
 await new Promise(resolve => {
-  const overlay = document.createElement('div');
-  overlay.style.cssText = `
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.85);
-    z-index: 99999;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 18px;
-    text-align: center;
-    padding: 20px;
-  `;
+  let unlocked = false;
   
-  overlay.innerHTML = `
-    <div style="margin-bottom: 30px; font-weight: 600;">
-      ✅ PDF je pripravené!
-    </div>
-    <button style="
-      padding: 16px 32px;
-      font-size: 18px;
-      font-weight: 600;
+  const checkUnlock = () => {
+    if (document.hidden) {
+      // stránka išla do pozadia (ako lock)
+      unlocked = true;
+    } else if (unlocked) {
+      // stránka sa vrátila (ako unlock)
+      document.removeEventListener('visibilitychange', checkUnlock);
+      resolve();
+    }
+  };
+  
+  document.addEventListener('visibilitychange', checkUnlock);
+  
+  // záložný timeout – ak by visibility nefungovala
+  setTimeout(() => {
+    document.removeEventListener('visibilitychange', checkUnlock);
+    
+    // zobrazíme jednoduchú hlášku
+    const msg = document.createElement('div');
+    msg.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       background: #28a745;
       color: white;
-      border: none;
+      padding: 20px 30px;
       border-radius: 12px;
-      cursor: pointer;
-    ">
-      Pokračovať
-    </button>
-  `;
-  
-  document.body.appendChild(overlay);
-  
-  overlay.querySelector('button').onclick = () => {
-    overlay.remove();
-    resolve();
-  };
+      font-size: 18px;
+      font-weight: 600;
+      z-index: 99999;
+      text-align: center;
+    `;
+    msg.innerHTML = `✅ PDF je pripravené!<br><br>Kliknite kdekoľvek pre pokračovanie`;
+    document.body.appendChild(msg);
+    
+    msg.onclick = () => {
+      msg.remove();
+      resolve();
+    };
+  }, 500);
 });
 
 }; // koniec btnConfirmSig
 
 
 /* ==============================
-   STIAHNUTIE PDF – priamo pri kliku
+   FUNKCIE PRE TLAČIDLÁ (GLOBÁLNE)
 ============================== */
 
-document.getElementById('btnDownloadPDF').onclick = ()=>{
-  if(!window.finalPdfUrl) {
+function downloadPDF() {
+  if (!window.pdfURL) {
     alert('PDF ešte nie je pripravené');
     return;
   }
   
   const a = document.createElement('a');
-  a.href = window.finalPdfUrl;
+  a.href = window.pdfURL;
   a.download = 'vyplnene_podpisane.pdf';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-};
+}
 
-
-/* ==============================
-   ZATVORENIE STRÁNKY
-============================== */
-
-document.getElementById('btnCloseAll').onclick = ()=>{
-
-  // ✅ 1) pokus o normálne zatvorenie
+function closePage() {
   window.open('', '_self');
   window.close();
 
-  // ✅ 2) ak prehliadač zablokuje, zobrazíme čistú ukončovaciu obrazovku
-  document.body.innerHTML = `
-    <div style="
-      padding:30px;
-      font-size:24px;
-      text-align:center;
-      font-weight:600;
-    ">
-      Hotovo ✅<br>
-      Stránku môžete zavrieť.<br><br>
-
-      <img src="logo.png"
-           style="width:160px; margin-top:15px; opacity:0.9;">
-    </div>
-  `;
-};
+  setTimeout(() => {
+    document.body.innerHTML = `
+      <div style="
+        padding:30px;
+        font-size:24px;
+        text-align:center;
+        font-weight:600;
+      ">
+        Hotovo ✅<br>
+        Stránku môžete zavrieť.<br><br>
+        <img src="logo.png"
+             style="width:160px; margin-top:15px; opacity:0.9;">
+      </div>
+    `;
+  }, 100);
+}
 </script>
