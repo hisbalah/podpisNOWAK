@@ -127,15 +127,14 @@
     </div>
   </div>
 
-  <!-- VÝSLEDOK -->
-  <div class="card" id="result" style="display:none">
-    <a id="downloadLink" class="btn ok" download="vyplnene_podpisane.pdf">Stiahnuť PDF</a>
-   <button id="btnCloseAll" class="btn" 
-          style="background:#ccc; border-color:#bbb; width:130px; font-weight:600;">
-    Zavrieť
-  </button>
+   <!-- VÝSLEDOK -->
+  <div class="card" id="result" style="display:none; gap:10px;">
+    <button id="btnDownloadPDF" class="btn ok">Stiahnuť PDF</button>
+    <button id="btnCloseAll" class="btn" 
+            style="background:#ccc; border-color:#bbb; width:130px; font-weight:600;">
+      Zavrieť
+    </button>
   </div>
-</div>
 
 <embed id="pdfPreview" type="application/pdf"
        style="width:100%; height:600px; border:1px solid #ccc; margin-top:10px; display:none;">
@@ -414,7 +413,7 @@ page.drawImage(pngImage, {
 });
 
 
-  /* ==========
+/* ==========
       ULOŽENIE PDF
      ========== */
 const pdfBytes = await pdfDoc.save();
@@ -423,13 +422,13 @@ const url = URL.createObjectURL(
 );
 await renderTopPDF(url);
 
-// ✅ uložíme URL pre tlačidlo
-finalPdfUrl = url;
+// ✅ uložíme URL GLOBÁLNE (DÔLEŽITÉ!)
+window.finalPdfUrl = url;
 
 // ✅ zobrazíme panel s tlačidlom
 document.getElementById('result').style.display = 'flex';
 
-// ✅ RIEŠENIE 1: SIMULÁCIA ZÁMKY DISPLEJA – obnovuje user gesture
+// ✅ RIEŠENIE: OVERLAY S KLIKNUTÍM – obnovuje user gesture
 await new Promise(resolve => {
   const overlay = document.createElement('div');
   overlay.style.cssText = `
@@ -477,16 +476,17 @@ await new Promise(resolve => {
 
 
 /* ==============================
-   STIAHNUTIE PDF – s user gesture
+   STIAHNUTIE PDF – priamo pri kliku
 ============================== */
 
-let finalPdfUrl = null;
-
 document.getElementById('btnDownloadPDF').onclick = ()=>{
-  if(!finalPdfUrl) return;
+  if(!window.finalPdfUrl) {
+    alert('PDF ešte nie je pripravené');
+    return;
+  }
   
   const a = document.createElement('a');
-  a.href = finalPdfUrl;
+  a.href = window.finalPdfUrl;
   a.download = 'vyplnene_podpisane.pdf';
   document.body.appendChild(a);
   a.click();
@@ -495,7 +495,7 @@ document.getElementById('btnDownloadPDF').onclick = ()=>{
 
 
 /* ==============================
-   ZATVORENIE STRÁNKY – 100% kompatibilné
+   ZATVORENIE STRÁNKY
 ============================== */
 
 document.getElementById('btnCloseAll').onclick = ()=>{
