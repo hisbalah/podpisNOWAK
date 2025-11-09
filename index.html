@@ -417,37 +417,81 @@ page.drawImage(pngImage, {
   /* ==========
       ULOŽENIE PDF
      ========== */
-
 const pdfBytes = await pdfDoc.save();
 const url = URL.createObjectURL(
   new Blob([pdfBytes], { type: 'application/pdf' })
 );
 await renderTopPDF(url);
 
+// ✅ uložíme URL pre tlačidlo
+finalPdfUrl = url;
 
-
-// ✅ zobrazíme panel s tlačidlom (pre istotu)
-document.getElementById('downloadLink').href = url;
+// ✅ zobrazíme panel s tlačidlom
 document.getElementById('result').style.display = 'flex';
 
-// ✅ Chrome Android user-gesture fix
+// ✅ RIEŠENIE 1: SIMULÁCIA ZÁMKY DISPLEJA – obnovuje user gesture
 await new Promise(resolve => {
-  const ghostBtn = document.createElement("button");
-  ghostBtn.style.position = "fixed";
-  ghostBtn.style.left = "-9999px";
-  ghostBtn.textContent = ".";
-  document.body.appendChild(ghostBtn);
-
-  ghostBtn.addEventListener("click", () => {
-    ghostBtn.remove();
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    text-align: center;
+    padding: 20px;
+  `;
+  
+  overlay.innerHTML = `
+    <div style="margin-bottom: 30px; font-weight: 600;">
+      ✅ PDF je pripravené!
+    </div>
+    <button style="
+      padding: 16px 32px;
+      font-size: 18px;
+      font-weight: 600;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+    ">
+      Pokračovať
+    </button>
+  `;
+  
+  document.body.appendChild(overlay);
+  
+  overlay.querySelector('button').onclick = () => {
+    overlay.remove();
     resolve();
-  }, { once: true });
-
-  ghostBtn.click();
+  };
 });
 
 }; // koniec btnConfirmSig
 
+
+/* ==============================
+   STIAHNUTIE PDF – s user gesture
+============================== */
+
+let finalPdfUrl = null;
+
+document.getElementById('btnDownloadPDF').onclick = ()=>{
+  if(!finalPdfUrl) return;
+  
+  const a = document.createElement('a');
+  a.href = finalPdfUrl;
+  a.download = 'vyplnene_podpisane.pdf';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+};
 
 
 /* ==============================
