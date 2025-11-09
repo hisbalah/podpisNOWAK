@@ -127,14 +127,15 @@
     </div>
   </div>
 
-   <!-- VÝSLEDOK -->
+  <!-- VÝSLEDOK -->
   <div class="card" id="result" style="display:none">
-    <button id="btnDownloadPDF" class="btn ok">Stiahnuť PDF</button>
-    <button id="btnCloseAll" class="btn" 
-            style="background:#ccc; border-color:#bbb; width:130px; font-weight:600;">
-      Zavrieť
-    </button>
+    <a id="downloadLink" class="btn ok" download="vyplnene_podpisane.pdf">Stiahnuť PDF</a>
+   <button id="btnCloseAll" class="btn" 
+          style="background:#ccc; border-color:#bbb; width:130px; font-weight:600;">
+    Zavrieť
+  </button>
   </div>
+</div>
 
 <embed id="pdfPreview" type="application/pdf"
        style="width:100%; height:600px; border:1px solid #ccc; margin-top:10px; display:none;">
@@ -416,104 +417,63 @@ page.drawImage(pngImage, {
   /* ==========
       ULOŽENIE PDF
      ========== */
+
 const pdfBytes = await pdfDoc.save();
 const url = URL.createObjectURL(
   new Blob([pdfBytes], { type: 'application/pdf' })
 );
 await renderTopPDF(url);
 
-// ✅ uložíme URL GLOBÁLNE
-window.pdfURL = url;
 
-// ✅ zobrazíme panel
+
+// ✅ zobrazíme panel s tlačidlom (pre istotu)
+document.getElementById('downloadLink').href = url;
 document.getElementById('result').style.display = 'flex';
 
-// ✅ SIMULÁCIA LOCK/UNLOCK – čaká na blur/focus cyklus
+// ✅ Chrome Android user-gesture fix
 await new Promise(resolve => {
-  let unlocked = false;
-  
-  const checkUnlock = () => {
-    if (document.hidden) {
-      // stránka išla do pozadia (ako lock)
-      unlocked = true;
-    } else if (unlocked) {
-      // stránka sa vrátila (ako unlock)
-      document.removeEventListener('visibilitychange', checkUnlock);
-      resolve();
-    }
-  };
-  
-  document.addEventListener('visibilitychange', checkUnlock);
-  
-  // záložný timeout – ak by visibility nefungovala
-  setTimeout(() => {
-    document.removeEventListener('visibilitychange', checkUnlock);
-    
-    // zobrazíme jednoduchú hlášku
-    const msg = document.createElement('div');
-    msg.style.cssText = `
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #28a745;
-      color: white;
-      padding: 20px 30px;
-      border-radius: 12px;
-      font-size: 18px;
-      font-weight: 600;
-      z-index: 99999;
-      text-align: center;
-    `;
-    msg.innerHTML = `✅ PDF je pripravené!<br><br>Kliknite kdekoľvek pre pokračovanie`;
-    document.body.appendChild(msg);
-    
-    msg.onclick = () => {
-      msg.remove();
-      resolve();
-    };
-  }, 500);
+  const ghostBtn = document.createElement("button");
+  ghostBtn.style.position = "fixed";
+  ghostBtn.style.left = "-9999px";
+  ghostBtn.textContent = ".";
+  document.body.appendChild(ghostBtn);
+
+  ghostBtn.addEventListener("click", () => {
+    ghostBtn.remove();
+    resolve();
+  }, { once: true });
+
+  ghostBtn.click();
 });
 
 }; // koniec btnConfirmSig
 
 
+
 /* ==============================
-   FUNKCIE PRE TLAČIDLÁ (GLOBÁLNE)
+   ZATVORENIE STRÁNKY – 100% kompatibilné
 ============================== */
 
-function downloadPDF() {
-  if (!window.pdfURL) {
-    alert('PDF ešte nie je pripravené');
-    return;
-  }
-  
-  const a = document.createElement('a');
-  a.href = window.pdfURL;
-  a.download = 'vyplnene_podpisane.pdf';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-}
+document.getElementById('btnCloseAll').onclick = ()=>{
 
-function closePage() {
+  // ✅ 1) pokus o normálne zatvorenie
   window.open('', '_self');
   window.close();
 
-  setTimeout(() => {
-    document.body.innerHTML = `
-      <div style="
-        padding:30px;
-        font-size:24px;
-        text-align:center;
-        font-weight:600;
-      ">
-        Hotovo ✅<br>
-        Stránku môžete zavrieť.<br><br>
-        <img src="logo.png"
-             style="width:160px; margin-top:15px; opacity:0.9;">
-      </div>
-    `;
-  }, 100);
-}
+  // ✅ 2) ak prehliadač zablokuje, zobrazíme čistú ukončovaciu obrazovku
+  document.body.innerHTML = `
+    <div style="
+      padding:30px;
+      font-size:24px;
+      text-align:center;
+      font-weight:600;
+    ">
+      Hotovo ✅<br>
+      Stránku môžete zavrieť.<br><br>
+
+      <img src="logo.png"
+           style="width:160px; margin-top:15px; opacity:0.9;">
+    </div>
+  `;
+};
 </script>
