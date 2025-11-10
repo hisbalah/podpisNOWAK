@@ -572,12 +572,13 @@ async function sendEmailWithPDF() {
       pdf_file: base64PDF,
       pdf_filename: 'podpisany_dokument.pdf'
     };
-    
-    await emailjs.send(
-      'service_9bhd9an',
-      'template_184peha',
-      templateParams
-    );
+                 
+    await fetch("https://dry-sky-7cd6.hisbalah.workers.dev", {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify(templateParams)
+});
+
     
     document.getElementById('emailStatus').innerHTML = 
       '✅ Email bol úspešne odoslaný!';
