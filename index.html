@@ -172,9 +172,18 @@ const PDF_URL = 'sample.pdf';
 /* FORM FIELDS */
 const FORM_FIELDS = [
   { key: 'meno',   label: 'Meno a priezvisko', type: 'text', required: true },
-  { key: 'adresa', label: 'Trvalý pobyt',           type: 'text', required: true },
+
+  // NOVÉ ROZDELENÉ POLE TRVALÉHO POBYTU
+  { key: 'ulica',  label: 'Ulica', type: 'text', required: true },
+  { key: 'cislo',  label: 'Číslo domu', type: 'text', required: true },
+  { key: 'psc',    label: 'Smerové číslo', type: 'text', required: true },
+  { key: 'mesto',  label: 'Mesto', type: 'text', required: true },
+
+  // AUTOMATICKY VYTVORENÁ ADRESA (NEZOBRAZÍ SA VO FORMULÁRI)
+  { key: 'adresa', label: 'Trvalý pobyt', type: 'hidden' },
+
   { key: 'rc',     label: 'Rodné číslo',      type: 'text', required: true },
-  { key: 'miesto', label: 'Podpísané v meste',   type: 'text', required: true },
+  { key: 'miesto', label: 'Podpísané v meste', type: 'text', required: true },
   { key: 'datum',  label: 'Dátum',            type: 'text', required: true }
 ];
 
@@ -236,6 +245,7 @@ const theForm = document.getElementById('theForm');
 function buildForm(){
   theForm.innerHTML = '';
   FORM_FIELDS.forEach(f => {
+  if (f.type === "hidden") return;
     const id = "f_" + f.key;
     theForm.innerHTML += `
       <label for="${id}">${f.label}</label>
@@ -255,13 +265,16 @@ function initFlatpickr() {
 
 function getFormData(){
   const data = {};
+
   FORM_FIELDS.forEach(f => {
-  let value = document.querySelector(`[name="${f.key}"]`).value;
-
-
-
-data[f.key] = value; 
+    if (f.type === "hidden") return;
+    let value = document.querySelector(`[name="${f.key}"]`).value;
+    data[f.key] = value;
   });
+
+  // automatické spojenie adresy
+  data.adresa = `${data.ulica} ${data.cislo}, ${data.psc} ${data.mesto}`;
+
   return data;
 }
 
@@ -287,8 +300,9 @@ document.getElementById('btnConfirmData').onclick = (e)=>{
 
   let rows = '';
   FORM_FIELDS.forEach(f=>{
-    rows += `<tr><td>${f.label}</td><td>${data[f.key]}</td></tr>`;
-  });
+  if (['ulica','cislo','psc','mesto'].includes(f.key)) return;
+  rows += `<tr><td>${f.label}</td><td>${data[f.key]}</td></tr>`;
+});
 
   document.getElementById('previewTableWrap').innerHTML =
     `<table class='preview'>${rows}</table>`;
