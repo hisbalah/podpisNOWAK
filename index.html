@@ -587,9 +587,9 @@ async function sendEmailWithPDF() {
       pdf_filename: 'podpisany_dokument.pdf'
     };
                  
-    await fetch("https://wild-third-agency-villas.trycloudflare.com/send_mail", {
+    await fetch("https://charts-led-grain-discrimination.trycloudflare.com/send_mail", {
   method: "POST",
-  headers: { "content-type": "application/json" },
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify(templateParams)
 });
 
