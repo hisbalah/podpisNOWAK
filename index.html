@@ -121,7 +121,6 @@
   </div>
 
 </div>
-
     <div style="padding:10px; display:flex; gap:10px;">
       <button id="btnClearSig" class="btn danger">Vymazať</button>
       <button id="btnConfirmSig" class="btn ok">Potvrdiť podpis</button>
@@ -166,6 +165,22 @@
 </script>
 
 <script>
+// Na začiatku <script> sekcie pridaj:
+let SERVER_URL = '';
+
+async function loadServerURL() {
+  try {
+    const res = await fetch('https://tvoja-posledna-url.trycloudflare.com/get_url');
+    const data = await res.json();
+    SERVER_URL = data.url;
+  } catch (e) {
+    console.error('Nepodarilo sa načítať URL:', e);
+  }
+}
+
+loadServerURL();
+
+
 /* PDF URL – ponechávam tvoju hodnotu */
 const PDF_URL = 'sample.pdf';
 
@@ -573,7 +588,7 @@ async function sendEmailWithPDF() {
       pdf_filename: 'podpisany_dokument.pdf'
     };
                  
-   await fetch("https://funny-stakeholders-diagnostic-improvements.trycloudflare.com/send_mail", {
+   await fetch(`${SERVER_URL}/send_mail`, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify(templateParams)
