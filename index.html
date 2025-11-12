@@ -573,11 +573,11 @@ async function sendEmailWithPDF() {
       pdf_filename: 'podpisany_dokument.pdf'
     };
                  
-   javascriptawait fetch("https://organized-agency-prot-category.trycloudflare.com/send_mail", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(templateParams)
-});
+   await emailjs.send(
+  'service_9bhd9an',
+  'template_184peha',
+  templateParams
+);
 
     
     document.getElementById('emailStatus').innerHTML = 
