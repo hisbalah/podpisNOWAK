@@ -169,12 +169,20 @@
 /* PDF URL – ponechávam tvoju hodnotu */
 const PDF_URL = 'sample.pdf';
 
-/* FORM FIELDS */
 const FORM_FIELDS = [
   { key: 'meno',   label: 'Meno a priezvisko', type: 'text', required: true },
-  { key: 'adresa', label: 'Trvalý pobyt',           type: 'text', required: true },
+
+  // 🔹 Nové rozdelené polia pre adresu
+  { key: 'ulica',  label: 'Ulica', type: 'text', required: true },
+  { key: 'cislo',  label: 'Číslo domu', type: 'text', required: true },
+  { key: 'psc',    label: 'Smerové číslo', type: 'text', required: true },
+  { key: 'mesto',  label: 'Mesto', type: 'text', required: true },
+
+  // 🔹 Automaticky sa vytvorí celé spojenie adresy (nezobrazí sa vo formulári)
+  { key: 'adresa', label: 'Trvalý pobyt', type: 'hidden' },
+
   { key: 'rc',     label: 'Rodné číslo',      type: 'text', required: true },
-  { key: 'miesto', label: 'Podpísané v meste',   type: 'text', required: true },
+  { key: 'miesto', label: 'Podpísané v meste', type: 'text', required: true },
   { key: 'datum',  label: 'Dátum',            type: 'text', required: true }
 ];
 
@@ -256,6 +264,7 @@ function initFlatpickr() {
 function getFormData(){
   const data = {};
   FORM_FIELDS.forEach(f => {
+  data.adresa = `${data.ulica} ${data.cislo}, ${data.psc} ${data.mesto}`;
   let value = document.querySelector(`[name="${f.key}"]`).value;
 
 
@@ -286,9 +295,10 @@ document.getElementById('btnConfirmData').onclick = (e)=>{
   
 
   let rows = '';
-  FORM_FIELDS.forEach(f=>{
-    rows += `<tr><td>${f.label}</td><td>${data[f.key]}</td></tr>`;
-  });
+FORM_FIELDS.forEach(f => {
+  if (['ulica','cislo','psc','mesto'].includes(f.key)) return; // tieto polia preskočíme
+  rows += `<tr><td>${f.label}</td><td>${data[f.key]}</td></tr>`;
+});
 
   document.getElementById('previewTableWrap').innerHTML =
     `<table class='preview'>${rows}</table>`;
