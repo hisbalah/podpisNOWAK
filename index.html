@@ -244,6 +244,7 @@ const theForm = document.getElementById('theForm');
 function buildForm(){
   theForm.innerHTML = '';
   FORM_FIELDS.forEach(f => {
+  if (f.type === 'hidden') return; // 🔹 preskočí skryté polia ako "Trvalý pobyt"
     const id = "f_" + f.key;
     theForm.innerHTML += `
       <label for="${id}">${f.label}</label>
@@ -264,13 +265,12 @@ function initFlatpickr() {
 function getFormData(){
   const data = {};
   FORM_FIELDS.forEach(f => {
-  data.adresa = `${data.ulica} ${data.cislo}, ${data.psc} ${data.mesto}`;
-  let value = document.querySelector(`[name="${f.key}"]`).value;
-
-
+    let value = document.querySelector(`[name="${f.key}"]`).value;
 
 data[f.key] = value; 
   });
+  
+  data.adresa = `${data.ulica} ${data.cislo}, ${data.psc} ${data.mesto}`;
   return data;
 }
 
@@ -691,3 +691,5 @@ function closePage() {
   }, 100);
 }
 </script>
+
+  
