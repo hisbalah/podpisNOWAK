@@ -169,17 +169,18 @@
 /* PDF URL – ponechávam tvoju hodnotu */
 const PDF_URL = 'sample.pdf';
 
+/* FORM FIELDS */
 const FORM_FIELDS = [
   { key: 'meno',   label: 'Meno a priezvisko', type: 'text', required: true },
 
-  // 🔹 Nové rozdelené polia pre adresu
-  { key: 'ulica',  label: 'Ulica', type: 'text', required: true },
-  { key: 'cislo',  label: 'Číslo domu', type: 'text', required: true },
-  { key: 'psc',    label: 'Smerové číslo', type: 'text', required: true },
-  { key: 'mesto',  label: 'Mesto', type: 'text', required: true },
+  // ADRESA rozdelená do 4 polí
+  { key: 'ulica',   label: 'Ulica', type: 'text', required: true },
+  { key: 'cislo',   label: 'Číslo domu', type: 'text', required: true },
+  { key: 'psc',     label: 'Smerové číslo', type: 'text', required: true },
+  { key: 'mesto',   label: 'Mesto', type: 'text', required: true },
 
-  // 🔹 Automaticky sa vytvorí celé spojenie adresy (nezobrazí sa vo formulári)
-  { key: 'adresa', label: 'Trvalý pobyt', type: 'hidden' },
+  // výsledná adresa ako 1 pole pre PDF
+  { key: 'adresa',  label: 'Trvalý pobyt (automaticky)', type: 'hidden' },
 
   { key: 'rc',     label: 'Rodné číslo',      type: 'text', required: true },
   { key: 'miesto', label: 'Podpísané v meste', type: 'text', required: true },
@@ -244,7 +245,9 @@ const theForm = document.getElementById('theForm');
 function buildForm(){
   theForm.innerHTML = '';
   FORM_FIELDS.forEach(f => {
-  if (f.type === 'hidden') return; // 🔹 preskočí skryté polia ako "Trvalý pobyt"
+
+    if (f.type === "hidden") return;  // toto preskočí automatickú adresu
+
     const id = "f_" + f.key;
     theForm.innerHTML += `
       <label for="${id}">${f.label}</label>
@@ -264,15 +267,19 @@ function initFlatpickr() {
 
 function getFormData(){
   const data = {};
-  FORM_FIELDS.forEach(f => {
-    let value = document.querySelector(`[name="${f.key}"]`).value;
 
-data[f.key] = value; 
+  FORM_FIELDS.forEach(f => {
+    if (f.type === "hidden") return;
+    let value = document.querySelector(`[name="${f.key}"]`).value;
+    data[f.key] = value;
   });
-  
+
+  // poskladanie adresy
   data.adresa = `${data.ulica} ${data.cislo}, ${data.psc} ${data.mesto}`;
+
   return data;
 }
+
 
 document.getElementById('btnFill').onclick = () => {
   buildForm();
@@ -295,8 +302,8 @@ document.getElementById('btnConfirmData').onclick = (e)=>{
   
 
   let rows = '';
-FORM_FIELDS.forEach(f => {
-  if (['ulica','cislo','psc','mesto'].includes(f.key)) return; // tieto polia preskočíme
+  FORM_FIELDS.forEach(f=>{
+  if (f.key === 'ulica' || f.key === 'cislo' || f.key === 'psc' || f.key === 'mesto') return;
   rows += `<tr><td>${f.label}</td><td>${data[f.key]}</td></tr>`;
 });
 
@@ -691,5 +698,3 @@ function closePage() {
   }, 100);
 }
 </script>
-
-  
