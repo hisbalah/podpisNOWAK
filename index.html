@@ -180,10 +180,15 @@ const FORM_FIELDS = [
   { key: 'mesto',   label: 'Mesto', type: 'text', required: true },
 
   // výsledná adresa ako 1 pole pre PDF
-  { key: 'adresa',  label: 'Trvalý pobyt (automaticky)', type: 'hidden' },
+  { key: 'adresa',  label: 'Trvalý pobyt', type: 'hidden' },
 
-  { key: 'rc1', label: 'Rodné číslo (prvá časť)', type: 'text', required: true, maxlength: 6, pattern: '\\d{6}' },
-  { key: 'rc2', label: 'Rodné číslo (druhá časť)', type: 'text', required: true, maxlength: 4, pattern: '\\d{4}' }
+  // RODNÉ ČÍSLO rozdelené na 2 časti
+  { key: 'rc1',     label: 'Rodné číslo (prvých 6 číslic)', type: 'text', required: true, maxlength: 6, pattern: '[0-9]{6}' },
+  { key: 'rc2',     label: 'Rodné číslo (posledné 4 číslice)', type: 'text', required: true, maxlength: 4, pattern: '[0-9]{4}' },
+
+  // výsledné RC ako 1 pole pre PDF
+  { key: 'rc',      label: 'Rodné číslo', type: 'hidden' },
+
   { key: 'miesto', label: 'Podpísané v meste', type: 'text', required: true },
   { key: 'datum',  label: 'Dátum',            type: 'text', required: true }
 ];
@@ -246,52 +251,64 @@ const theForm = document.getElementById('theForm');
 function buildForm(){
   theForm.innerHTML = '';
   FORM_FIELDS.forEach(f => {
-    const id = "f_" + f.key;
-    let inputHTML = `
-      <label for="${id}">${f.label}</label>
-      <input id="${id}" name="${f.key}" type="${f.type}" ${f.required ? 'required' : ''} 
-             ${f.maxlength ? `maxlength="${f.maxlength}"` : ''} 
-             ${f.pattern ? `pattern="${f.pattern}"` : ''} 
-             style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border);">
-    `;
 
-    // Ak je to rc1, pridaj lomitko a rc2 hneď vedľa
+    if (f.type === "hidden") return;  // preskočí skryté polia
+
+    const id = "f_" + f.key;
+    
+    // Špeciálne zobrazenie pre RC1 a RC2 v jednom riadku
     if (f.key === 'rc1') {
-      const id2 = "f_rc2";
-      inputHTML = `
+      theForm.innerHTML += `
         <label>Rodné číslo</label>
-        <div style="display:flex; gap:8px; align-items:center;">
-          <input id="${id}" name="${f.key}" type="text" required maxlength="6" pattern="\\d{6}" 
-                 style="width:48%; padding:10px; border-radius:10px; border:1px solid var(--border); text-align:center; font-weight:600;">
-          <span style="font-size:18px; font-weight:700;">/</span>
-          <input id="${id2}" name="rc2" type="text" required maxlength="4" pattern="\\d{4}" 
-                 style="width:48%; padding:10px; border-radius:10px; border:1px solid var(--border); text-align:center; font-weight:600;">
+        <div style="display: flex; gap: 5px; align-items: center;">
+          <input id="f_rc1" name="rc1" type="text" 
+                 maxlength="6" pattern="[0-9]{6}" 
+                 placeholder="123456" 
+                 style="flex: 1;" required>
+          <span style="font-weight: 700; font-size: 20px;">/</span>
+          <input id="f_rc2" name="rc2" type="text" 
+                 maxlength="4" pattern="[0-9]{4}" 
+                 placeholder="7890" 
+                 style="flex: 1;" required>
         </div>
       `;
-      theForm.innerHTML += inputHTML;
-      return; // preskoč rc2, lebo je už pridané
+      return;
     }
-
-    // Pre rc2 – preskoč, lebo už bolo pridané
+    
+    // RC2 už je zobrazené vyššie, preskočíme
     if (f.key === 'rc2') return;
+    
+    // Ostatné polia normálne
+    theForm.innerHTML += `
+      <label for="${id}">${f.label}</label>
+      <input id="${id}" name="${f.key}" type="${f.type}" ${f.required ? 'required' : ''}>
+    `;
+  });
+}
 
-    theForm.innerHTML += inputHTML;
+// ✅ Flatpickr pre slovenský kalendár s formátom DD.MM.YYYY
+function initFlatpickr() {
+  flatpickr("#f_datum", {
+    dateFormat: "d.m.Y",
+    allowInput: true,
+    locale: "sk"
   });
 }
 
 function getFormData(){
   const data = {};
+
   FORM_FIELDS.forEach(f => {
-    let value = document.querySelector(`[name="${f.key}"]`)?.value || '';
+    if (f.type === "hidden") return;
+    let value = document.querySelector(`[name="${f.key}"]`).value;
     data[f.key] = value;
   });
 
-  // Spoj rc1 a rc2 do rc
-  if (data.rc1 && data.rc2) {
-    data.rc = data.rc1 + '/' + data.rc2;
-  } else {
-    data.rc = '';
-  }
+  // poskladanie adresy
+  data.adresa = `${data.ulica} ${data.cislo}, ${data.psc} ${data.mesto}`;
+
+  // poskladanie rodného čísla
+  data.rc = `${data.rc1}/${data.rc2}`;
 
   return data;
 }
@@ -315,13 +332,12 @@ document.getElementById('btnConfirmData').onclick = (e)=>{
 
   const data = getFormData();
 
-  
-
   let rows = '';
   FORM_FIELDS.forEach(f=>{
-  if (f.key === 'ulica' || f.key === 'cislo' || f.key === 'psc' || f.key === 'mesto') return;
-  rows += `<tr><td>${f.label}</td><td>${data[f.key]}</td></tr>`;
-});
+    // preskočíme časti adresy a RC
+    if (['ulica','cislo','psc','mesto','rc1','rc2'].includes(f.key)) return;
+    rows += `<tr><td>${f.label}</td><td>${data[f.key]}</td></tr>`;
+  });
 
   document.getElementById('previewTableWrap').innerHTML =
     `<table class='preview'>${rows}</table>`;
