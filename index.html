@@ -420,16 +420,20 @@ const existingPdfBytes = await fetch(PDF_URL).then(r=>r.arrayBuffer());
 const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
 const page = pdfDoc.getPages()[0];
 
-// ✅ POUŽIŤ ŠTANDARDNÝ FONT (najspoľahlivejší)
-const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Courier);
-console.log('✅ Courier font načítaný');
+// ✅ FONT S PODPOROU DIKRITIKY (áčďľšžô…)
+const fontBytes = await fetch(
+  "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.72/fonts/Roboto-Regular.ttf"
+).then(res => res.arrayBuffer());
+
+const font = await pdfDoc.embedFont(fontBytes, { subset: false });
+console.log('✅ Roboto-Regular načítaný (diakritika OK)');
 
 const data = getFormData();
 
 
-    /* ==========
-    VLOŽENIE ÚDAJOV DO PDF
-   ========== */
+  /* ==========
+   VLOŽENIE ÚDAJOV DO PDF
+========== */
 
 const fieldsXY = {
   meno:   {x: 170, y: 696},
@@ -439,37 +443,23 @@ const fieldsXY = {
   datum:  {x: 118, y: 265}
 };
 
-for(const f of FORM_FIELDS){
+for (const f of FORM_FIELDS) {
   const xy = fieldsXY[f.key];
-  if(!xy) continue;
+  if (!xy) continue;
 
-  let text = String(data[f.key] || "");
-  
-  // ✅ Konverzia špeciálnych znakov na Win-1250
-  const charMap = {
-    'á': 'a', 'ä': 'a', 'č': 'c', 'ď': 'd', 'é': 'e', 'ě': 'e',
-    'í': 'i', 'ľ': 'l', 'ĺ': 'l', 'ň': 'n', 'ó': 'o', 'ô': 'o',
-    'ŕ': 'r', 'ř': 'r', 'š': 's', 'ť': 't', 'ú': 'u', 'ů': 'u',
-    'ý': 'y', 'ž': 'z',
-    'Á': 'A', 'Ä': 'A', 'Č': 'C', 'Ď': 'D', 'É': 'E', 'Ě': 'E',
-    'Í': 'I', 'Ľ': 'L', 'Ĺ': 'L', 'Ň': 'N', 'Ó': 'O', 'Ô': 'O',
-    'Ŕ': 'R', 'Ř': 'R', 'Š': 'S', 'Ť': 'T', 'Ú': 'U', 'Ů': 'U',
-    'Ý': 'Y', 'Ž': 'Z'
-  };
-  
-  // Nahraď diakritiku
-  const cleanText = text.split('').map(char => charMap[char] || char).join('');
-  
-  console.log(`Vkladám: "${text}" → "${cleanText}"`);
-  
-  page.drawText(cleanText, {
+  const text = String(data[f.key] || "");
+
+  // 🔥 VLOŽENIE TEXTU S DIKRITIKOU
+  page.drawText(text, {
     x: xy.x,
     y: xy.y,
     size: 12,
-    font,
+    font: font,         // ← ROBOTO
     color: PDFLib.rgb(0,0,0)
   });
 }
+  
+  
 
     /* ==========
         VLOŽENIE PODPISU
