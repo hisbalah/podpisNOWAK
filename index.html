@@ -144,6 +144,7 @@
 
 <!-- PDF.js -->
 <script src="https://unpkg.com/pdfjs-dist@2.16.105/build/pdf.min.js"></script>
+<script src="https://unpkg.com/@pdf-lib/fontkit@0.0.4/dist/fontkit.umd.min.js"></script>
 <script>
   // korektná inicializácia – funguje 100% na GitHube
   var pdfjsLib = window['pdfjsLib'];
@@ -418,6 +419,7 @@ document.getElementById('btnConfirmSig').onclick = async()=>{
 // ✅ NAČÍTAJ PÔVODNÉ PDF
 const existingPdfBytes = await fetch(PDF_URL).then(r=>r.arrayBuffer());
 const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
+pdfDoc.registerFontkit(fontkit);
 const page = pdfDoc.getPages()[0];
 
 // ✅ FONT S PODPOROU DIKRITIKY (áčďľšžô…)
