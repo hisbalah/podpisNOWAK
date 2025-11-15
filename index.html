@@ -410,27 +410,30 @@ document.getElementById('btnConfirmSig').onclick = async()=>{
   }
 
   // zatvor modal
-  sigModal.style.display = 'none';
-  document.body.style.overflow = "";
+sigModal.style.display = 'none';
+document.body.style.overflow = "";
 
-  try {
-    const sigDataUrl = signaturePad.toDataURL('image/png');
-    
-// ✅ NAČÍTAJ PÔVODNÉ PDF
-const existingPdfBytes = await fetch(PDF_URL).then(r=>r.arrayBuffer());
-const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
-pdfDoc.registerFontkit(fontkit);
-const page = pdfDoc.getPages()[0];
+try {
+  const sigDataUrl = signaturePad.toDataURL('image/png');
 
-// ✅ FONT S PODPOROU DIKRITIKY (áčďľšžô…)
-const fontBytes = await fetch(
-  "https://cdn.jsdelivr.net/gh/dejavu-fonts/dejavu-fonts-ttf@master/ttf/DejaVuSans.ttf"
-).then(res => res.arrayBuffer());
+  // ✅ NAČÍTAJ PÔVODNÉ PDF
+  const existingPdfBytes = await fetch(PDF_URL).then(r => r.arrayBuffer());
+  const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
 
-const font = await pdfDoc.embedFont(fontBytes, { subset: false });
-console.log('✅ Roboto-Regular načítaný (diakritika OK)');
+  // ✅ REGISTRUJ FONTKIT
+  pdfDoc.registerFontkit(fontkit);
 
-const data = getFormData();
+  const page = pdfDoc.getPages()[0];
+
+  // ✅ NAČÍTAJ LOKÁLNY DEJAVU SANS (priamo z priečinka)
+  const fontBytes = await fetch("DejaVuSans.ttf").then(r => r.arrayBuffer());
+
+  // embedni font s podporou diakritiky
+  const font = await pdfDoc.embedFont(fontBytes, { subset: false });
+  console.log('✔️ DejaVuSans načítaný (diakritika OK)');
+
+  // načítaj údaje
+  const data = getFormData();
 
 
   /* ==========
