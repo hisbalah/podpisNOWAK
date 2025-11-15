@@ -419,11 +419,8 @@ document.getElementById('btnConfirmSig').onclick = async()=>{
   const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
   const page   = pdfDoc.getPages()[0];
 
-// podporujúci font pre diakritiku – načítaný cez CDN
-const fontBytes = await fetch("https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.72/fonts/Roboto-Regular.ttf")
-  .then(res => res.arrayBuffer());
-
-const font = await pdfDoc.embedFont(fontBytes, { subset: true });
+// ✅ Použijeme štandardný font Times-Roman (podporuje diakritiku)
+const font = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
 
 const data = getFormData();
 
