@@ -360,51 +360,38 @@ let signaturePad;
 const sigModal  = document.getElementById('sigModal');
 const sigCanvas = document.getElementById('sigCanvas');
 
-document.getElementById('btnSign').onclick = () => {
+document.getElementById('btnSign').onclick = ()=>{
   sigModal.style.display = 'block';
-  document.body.style.overflow = "hidden";
+  resizeSigCanvas();
 
-  // iPhone FIX – počkať, kým Safari prepočíta skutočné rozmery prvkov
-  setTimeout(() => {
-    resizeSigCanvas();
+  signaturePad = new SignaturePad(sigCanvas, {
+    minWidth: 0.9,
+    maxWidth: 2.2,
+    penColor: '#58389c',               // ✅ modrý podpis
+    backgroundColor: 'rgba(0,0,0,0)'   // ✅ priehľadné pozadie
+  });
 
-    signaturePad = new SignaturePad(sigCanvas, {
-      minWidth: 0.9,
-      maxWidth: 2.2,
-      penColor: '#58389c',               // modrý podpis
-      backgroundColor: 'rgba(0,0,0,0)'   // priehľadné pozadie
-    });
-
-  }, 200); // <- DÔLEŽITÉ
+  document.body.style.overflow = "hidden"; // fix pre mobil
 };
 
-document.getElementById('btnCloseSig').onclick = () => {
+document.getElementById('btnCloseSig').onclick = ()=>{
   sigModal.style.display = 'none';
   document.body.style.overflow = "";
 };
 
-document.getElementById('btnClearSig').onclick = () => {
-  if (signaturePad) signaturePad.clear();
+document.getElementById('btnClearSig').onclick = ()=>{
+  if(signaturePad) signaturePad.clear();
 };
 
-function resizeSigCanvas() {
-  const ratio = Math.max(window.devicePixelRatio || 1, 1);
-
-  const w = sigCanvas.clientWidth;
-  const h = sigCanvas.clientHeight;
-
-  // iPhone safety – ak je veľkosť 0×0, canvas sa ešte neprepočítal
-  if (w < 10 || h < 10) return;
-
-  sigCanvas.width = w * ratio;
-  sigCanvas.height = h * ratio;
-
-  const ctx = sigCanvas.getContext('2d');
-  ctx.scale(ratio, ratio);
+function resizeSigCanvas(){
+   const ratio = (window.devicePixelRatio || 1) * 2.5;   // zvýšené DPI
+  sigCanvas.width  = sigCanvas.clientWidth * ratio;
+  sigCanvas.height = sigCanvas.clientHeight * ratio;
+  sigCanvas.getContext('2d').scale(ratio, ratio);
 }
 
-window.onresize = () => {
-  if (sigModal.style.display === 'block') {
+window.onresize = ()=>{
+  if(sigModal.style.display === 'block'){
     resizeSigCanvas();
   }
 };
@@ -432,7 +419,9 @@ document.getElementById('btnConfirmSig').onclick = async()=>{
   const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
   const page   = pdfDoc.getPages()[0];
 
-  const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+  // podporujúci font pre diakritiku
+const fontBytes = await fetch("Roboto-Regular.ttf").then(res => res.arrayBuffer());
+const font = await pdfDoc.embedFont(fontBytes, { subset: true });
   const data = getFormData();
 
 
