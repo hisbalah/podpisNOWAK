@@ -424,7 +424,7 @@ const page = pdfDoc.getPages()[0];
 
 // ✅ FONT S PODPOROU DIKRITIKY (áčďľšžô…)
 const fontBytes = await fetch(
-  "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.72/fonts/Roboto-Regular.ttf"
+  "https://github.com/google/fonts/raw/main/apache/roboto/Roboto-Regular.ttf"
 ).then(res => res.arrayBuffer());
 
 const font = await pdfDoc.embedFont(fontBytes, { subset: false });
