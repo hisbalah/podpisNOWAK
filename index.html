@@ -424,7 +424,7 @@ const page = pdfDoc.getPages()[0];
 
 // ✅ FONT S PODPOROU DIKRITIKY (áčďľšžô…)
 const fontBytes = await fetch(
-  "https://github.com/google/fonts/raw/main/apache/roboto/Roboto-Regular.ttf"
+  "https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxP.ttf"
 ).then(res => res.arrayBuffer());
 
 const font = await pdfDoc.embedFont(fontBytes, { subset: false });
