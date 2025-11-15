@@ -416,14 +416,23 @@ document.getElementById('btnConfirmSig').onclick = async()=>{
     const sigDataUrl = signaturePad.toDataURL('image/png');
 
     // ✅ NAČÍTAJ PÔVODNÉ PDF
-    const existingPdfBytes = await fetch(PDF_URL).then(r=>r.arrayBuffer());
-    const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
-    const page = pdfDoc.getPages()[0];
+const existingPdfBytes = await fetch(PDF_URL).then(r=>r.arrayBuffer());
+const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
+const page = pdfDoc.getPages()[0];
 
-    // ✅ EMBED FONT S DIAKRITIKU
-    const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+// ✅ EMBED FONT S DIAKRITIKU - DejaVu Sans (plná Unicode podpora)
+let font;
+try {
+  const fontUrl = 'https://cdn.jsdelivr.net/npm/dejavu-fonts-ttf@2.37.3/ttf/DejaVuSans.ttf';
+  const fontBytes = await fetch(fontUrl).then(res => res.arrayBuffer());
+  font = await pdfDoc.embedFont(fontBytes);
+  console.log('✅ DejaVu Sans font načítaný');
+} catch (e) {
+  console.warn('⚠️ DejaVu Sans sa nepodarilo načítať, používam TimesRoman:', e);
+  font = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
+}
 
-    const data = getFormData();
+const data = getFormData();
 
     /* ==========
         VLOŽENIE ÚDAJOV DO PDF
