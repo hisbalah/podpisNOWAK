@@ -420,68 +420,56 @@ const existingPdfBytes = await fetch(PDF_URL).then(r=>r.arrayBuffer());
 const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
 const page = pdfDoc.getPages()[0];
 
-// ✅ NAČÍTAJ ROBOTO FONT S SPRÁVNOU PODPOROU UNICODE
-let font;
-try {
-  console.log('📦 Načítavam Roboto font...');
-  const fontUrl = 'https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf';
-  const fontBytes = await fetch(fontUrl).then(res => res.arrayBuffer());
-  font = await pdfDoc.embedFont(fontBytes);
-  console.log('✅ Roboto font načítaný s podporou diakritiky');
-} catch (e) {
-  console.error('❌ Chyba pri načítaní fontu:', e);
-  // Záložný font
-  font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
-  console.log('⚠️ Používam Helvetica (bez diakritiky)');
-}
+// ✅ POUŽIŤ ŠTANDARDNÝ FONT (najspoľahlivejší)
+const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Courier);
+console.log('✅ Courier font načítaný');
 
 const data = getFormData();
 
 
     /* ==========
-        VLOŽENIE ÚDAJOV DO PDF
-       ========== */
+    VLOŽENIE ÚDAJOV DO PDF
+   ========== */
 
-    const fieldsXY = {
-      meno:   {x: 170, y: 696},
-      adresa: {x: 170, y: 673},
-      rc:     {x: 170, y: 650},
-      miesto: {x: 280, y: 265},
-      datum:  {x: 118, y: 265}
-    };
+const fieldsXY = {
+  meno:   {x: 170, y: 696},
+  adresa: {x: 170, y: 673},
+  rc:     {x: 170, y: 650},
+  miesto: {x: 280, y: 265},
+  datum:  {x: 118, y: 265}
+};
 
-    for(const f of FORM_FIELDS){
-      const xy = fieldsXY[f.key];
-      if(!xy) continue;
+for(const f of FORM_FIELDS){
+  const xy = fieldsXY[f.key];
+  if(!xy) continue;
 
-      // ✅ Konverzia diakritiky na ASCII fallback
-      let text = String(data[f.key] || "");
-      
-      // Pokus vložiť text s diakritikou
-      try {
-        page.drawText(text, {
-          x: xy.x,
-          y: xy.y,
-          size: 12,
-          font,
-          color: PDFLib.rgb(0,0,0)
-        });
-      } catch (e) {
-        // Ak zlyhá, odstráň diakritiku
-        console.warn(`Diakritika nefunguje pre "${text}", používam ASCII`);
-        const fallback = text
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, ""); // odstráni diakritiku
-        
-        page.drawText(fallback, {
-          x: xy.x,
-          y: xy.y,
-          size: 12,
-          font,
-          color: PDFLib.rgb(0,0,0)
-        });
-      }
-    }
+  let text = String(data[f.key] || "");
+  
+  // ✅ Konverzia špeciálnych znakov na Win-1250
+  const charMap = {
+    'á': 'a', 'ä': 'a', 'č': 'c', 'ď': 'd', 'é': 'e', 'ě': 'e',
+    'í': 'i', 'ľ': 'l', 'ĺ': 'l', 'ň': 'n', 'ó': 'o', 'ô': 'o',
+    'ŕ': 'r', 'ř': 'r', 'š': 's', 'ť': 't', 'ú': 'u', 'ů': 'u',
+    'ý': 'y', 'ž': 'z',
+    'Á': 'A', 'Ä': 'A', 'Č': 'C', 'Ď': 'D', 'É': 'E', 'Ě': 'E',
+    'Í': 'I', 'Ľ': 'L', 'Ĺ': 'L', 'Ň': 'N', 'Ó': 'O', 'Ô': 'O',
+    'Ŕ': 'R', 'Ř': 'R', 'Š': 'S', 'Ť': 'T', 'Ú': 'U', 'Ů': 'U',
+    'Ý': 'Y', 'Ž': 'Z'
+  };
+  
+  // Nahraď diakritiku
+  const cleanText = text.split('').map(char => charMap[char] || char).join('');
+  
+  console.log(`Vkladám: "${text}" → "${cleanText}"`);
+  
+  page.drawText(cleanText, {
+    x: xy.x,
+    y: xy.y,
+    size: 12,
+    font,
+    color: PDFLib.rgb(0,0,0)
+  });
+}
 
     /* ==========
         VLOŽENIE PODPISU
