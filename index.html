@@ -415,12 +415,18 @@ document.getElementById('btnConfirmSig').onclick = async()=>{
   const sigDataUrl = signaturePad.toDataURL('image/png');
 
   // načítaj pôvodné PDF
-  const existingPdfBytes = await fetch(PDF_URL).then(r=>r.arrayBuffer());
-  const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
-  const page   = pdfDoc.getPages()[0];
-
-// ✅ Použijeme štandardný font Times-Roman (podporuje diakritiku)
-const font = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
+  try {
+  // Pokus o načítanie vlastného fontu
+  const fontBytes = await fetch("https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.72/fonts/Roboto-Regular.ttf")
+    .then(res => res.arrayBuffer());
+  
+  const font = await pdfDoc.embedFont(fontBytes);
+  
+} catch (e) {
+  // Ak sa font nepodarí načítať, použije sa záložný
+  console.error('Chyba pri načítaní fontu, používam TimesRoman:', e);
+  const font = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
+}
 
 const data = getFormData();
 
