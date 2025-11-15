@@ -414,25 +414,29 @@ document.getElementById('btnConfirmSig').onclick = async()=>{
 
   try {
     const sigDataUrl = signaturePad.toDataURL('image/png');
-
-    // ✅ NAČÍTAJ PÔVODNÉ PDF
+    
+// ✅ NAČÍTAJ PÔVODNÉ PDF
 const existingPdfBytes = await fetch(PDF_URL).then(r=>r.arrayBuffer());
 const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
 const page = pdfDoc.getPages()[0];
 
-// ✅ EMBED FONT S DIAKRITIKU - DejaVu Sans (plná Unicode podpora)
+// ✅ NAČÍTAJ ROBOTO FONT S SPRÁVNOU PODPOROU UNICODE
 let font;
 try {
-  const fontUrl = 'https://cdn.jsdelivr.net/npm/dejavu-fonts-ttf@2.37.3/ttf/DejaVuSans.ttf';
+  console.log('📦 Načítavam Roboto font...');
+  const fontUrl = 'https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf';
   const fontBytes = await fetch(fontUrl).then(res => res.arrayBuffer());
   font = await pdfDoc.embedFont(fontBytes);
-  console.log('✅ DejaVu Sans font načítaný');
+  console.log('✅ Roboto font načítaný s podporou diakritiky');
 } catch (e) {
-  console.warn('⚠️ DejaVu Sans sa nepodarilo načítať, používam TimesRoman:', e);
-  font = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
+  console.error('❌ Chyba pri načítaní fontu:', e);
+  // Záložný font
+  font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+  console.log('⚠️ Používam Helvetica (bez diakritiky)');
 }
 
 const data = getFormData();
+
 
     /* ==========
         VLOŽENIE ÚDAJOV DO PDF
